@@ -261,7 +261,7 @@
   </style>
 </head>
 <body>
-<div class="widget theme-default" id="widget">
+<div class="widget" id="widget">
 
   <div class="header">
     <div class="month-label" id="monthLabel">January 2026</div>
@@ -315,7 +315,8 @@
   const menuBtn  = document.getElementById('menuBtn');
   const today    = new Date();
   let current    = { year: today.getFullYear(), month: today.getMonth() };
-  let activeTheme = 'default';
+  let activeTheme = localStorage.getItem('cal-theme') || 'default';
+  widget.classList.add(`theme-${activeTheme}`);
 
   /* ── Popover toggle ── */
   menuBtn.addEventListener('click', (e) => {
@@ -331,12 +332,14 @@
   THEMES.forEach(t => {
     const dot = document.createElement('div');
     dot.className = 'swatch' + (t.name === activeTheme ? ' active' : '');
+    dot.setAttribute('data-theme', t.name);
     dot.style.background = t.color;
     dot.title = t.label;
     dot.addEventListener('click', () => {
       widget.classList.remove(`theme-${activeTheme}`);
       activeTheme = t.name;
       widget.classList.add(`theme-${activeTheme}`);
+      localStorage.setItem('cal-theme', activeTheme);
       document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
       dot.classList.add('active');
       popover.classList.remove('open');
