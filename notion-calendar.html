@@ -37,16 +37,7 @@
 
     /* ── Header ── */
     .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       margin-bottom: 10px;
-      gap: 4px;
-    }
-
-    .header-center {
-      flex: 1;
-      text-align: center;
     }
 
     .month-label {
@@ -55,12 +46,15 @@
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--text);
+      text-align: center;
     }
 
-    .header-right {
+    /* ── Footer ── */
+    .footer {
       display: flex;
       align-items: center;
-      gap: 2px;
+      justify-content: space-between;
+      margin-top: 8px;
     }
 
     .nav-btn, .menu-btn {
@@ -95,8 +89,9 @@
     .popover {
       display: none;
       position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -269,20 +264,7 @@
 <div class="widget theme-default" id="widget">
 
   <div class="header">
-    <button class="nav-btn" id="prev">&#171;</button>
-    <div class="header-center">
-      <div class="month-label" id="monthLabel">January 2026</div>
-    </div>
-    <div class="header-right">
-      <button class="nav-btn" id="next">&#187;</button>
-      <div class="popover-wrap" id="popoverWrap">
-        <button class="menu-btn" id="menuBtn">···</button>
-        <div class="popover" id="popover">
-          <div class="popover-label">Color</div>
-          <div class="swatch-grid" id="swatchGrid"></div>
-        </div>
-      </div>
-    </div>
+    <div class="month-label" id="monthLabel">January 2026</div>
   </div>
 
   <div class="days-grid">
@@ -296,6 +278,18 @@
   </div>
 
   <div class="dates-grid" id="datesGrid"></div>
+
+  <div class="footer">
+    <button class="nav-btn" id="prev">&#171;</button>
+    <div class="popover-wrap" id="popoverWrap">
+      <button class="menu-btn" id="menuBtn">···</button>
+      <div class="popover" id="popover">
+        <div class="popover-label">Color</div>
+        <div class="swatch-grid" id="swatchGrid"></div>
+      </div>
+    </div>
+    <button class="nav-btn" id="next">&#187;</button>
+  </div>
 
 </div>
 
