@@ -28,11 +28,12 @@
       width: 100%;
     }
 
-    /* time + ampm sit in a relative wrapper so ampm can
-       align to the right edge (under the seconds) */
+    /* time-wrap is an inline-flex column so ampm
+       naturally sits right-aligned below the time text */
     .time-wrap {
-      position: relative;
-      display: inline-block;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-end;
     }
 
     .time {
@@ -55,15 +56,13 @@
     }
 
     .ampm {
-      position: absolute;
-      right: 0;
-      bottom: -14px;
       font-size: clamp(8px, 1.4vw, 11px);
       font-weight: 300;
       letter-spacing: 0.2em;
       color: #ccc;
       text-transform: uppercase;
       display: none;
+      margin-top: 1px;
     }
 
     .ampm.visible { display: block; }
@@ -72,7 +71,7 @@
       width: 20px;
       height: 1px;
       background: #e0e0e0;
-      margin: 10px auto 2px; /* extra top margin accounts for ampm space */
+      margin: 4px auto 2px;
     }
 
     .date {
