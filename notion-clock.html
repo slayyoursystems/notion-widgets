@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clock Widget</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .widget {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .time {
+      font-size: clamp(48px, 10vw, 80px);
+      font-weight: 200;
+      letter-spacing: -2px;
+      color: #1a1a1a;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time .seconds {
+      font-size: 0.45em;
+      font-weight: 300;
+      color: #aaa;
+      vertical-align: super;
+      margin-left: 4px;
+      letter-spacing: 0;
+    }
+
+    .date {
+      font-size: clamp(12px, 2.5vw, 15px);
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: #999;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      width: 24px;
+      height: 1px;
+      background: #e0e0e0;
+      margin: 4px auto;
+    }
+
+    .greeting {
+      font-size: clamp(10px, 2vw, 13px);
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: #bbb;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget">
+    <div class="time" id="time">
+      00:00<span class="seconds" id="seconds">00</span>
+    </div>
+    <div class="divider"></div>
+    <div class="date" id="date">Saturday, January 1</div>
+    <div class="greeting" id="greeting">good morning</div>
+  </div>
+
+  <script>
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function getGreeting(hour) {
+      if (hour < 12) return 'good morning';
+      if (hour < 17) return 'good afternoon';
+      return 'good evening';
+    }
+
+    const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHS = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+
+    function tick() {
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      const s = now.getSeconds();
+
+      document.getElementById('time').innerHTML =
+        `${pad(h)}:${pad(m)}<span class="seconds">${pad(s)}</span>`;
+
+      document.getElementById('date').textContent =
+        `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
+
+      document.getElementById('greeting').textContent = getGreeting(h);
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>
