@@ -8,18 +8,20 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* ── Base tokens ── */
     :root {
-      --accent: #2eaadc;
-      --accent-light: #e8f4f9;
-      --text: #1a1a1a;
-      --subtext: #999;
-      --faint: #ddd;
-      --bg: transparent;
+      --accent:      #c4dff5;
+      --accent-text: #2a6496;
+      --cell-bg:     #eef5fb;
+      --text:        #1a1a1a;
+      --subtext:     #aaa;
+      --faint:       #e0e0e0;
+      --border:      #ebebeb;
     }
 
     body {
       font-family: 'Inter', sans-serif;
-      background: var(--bg);
+      background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -28,64 +30,130 @@
     }
 
     .widget {
-      width: min(320px, 95vw);
+      width: min(300px, 95vw);
       user-select: none;
+      position: relative;
     }
 
-    /* Header */
+    /* ── Header ── */
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+      gap: 4px;
+    }
+
+    .header-center {
+      flex: 1;
+      text-align: center;
     }
 
     .month-label {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 300;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--text);
     }
 
-    .nav {
+    .header-right {
       display: flex;
-      gap: 8px;
+      align-items: center;
+      gap: 2px;
     }
 
-    .nav button {
+    .nav-btn, .menu-btn {
       background: none;
       border: none;
       cursor: pointer;
       color: var(--subtext);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1;
-      padding: 2px 4px;
-      border-radius: 3px;
-      transition: color 0.15s;
+      padding: 3px 5px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+      font-family: 'Inter', sans-serif;
     }
 
-    .nav button:hover { color: var(--text); }
+    .nav-btn:hover, .menu-btn:hover {
+      color: var(--text);
+      background: var(--border);
+    }
 
-    /* Day labels */
+    .menu-btn {
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: var(--subtext);
+    }
+
+    /* ── Color popover ── */
+    .popover-wrap {
+      position: relative;
+    }
+
+    .popover {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+      width: 148px;
+    }
+
+    .popover.open { display: block; }
+
+    .popover-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtext);
+      margin-bottom: 8px;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: transform 0.12s, border-color 0.12s;
+    }
+
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.active { border-color: #666; }
+
+    /* ── Day labels ── */
     .days-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 2px;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .day-label {
       text-align: center;
       font-size: 9px;
       font-weight: 400;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--subtext);
       padding: 2px 0;
     }
 
-    /* Dates */
+    /* ── Date cells ── */
     .dates-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -93,96 +161,127 @@
     }
 
     .day-cell {
-      text-align: center;
-      font-size: 11px;
-      font-weight: 300;
-      color: var(--text);
-      padding: 5px 2px;
-      border-radius: 4px;
-      cursor: default;
-      transition: background 0.1s;
-      line-height: 1;
-    }
-
-    .day-cell.empty { color: transparent; }
-
-    .day-cell.other-month { color: var(--faint); }
-
-    .day-cell.today {
-      background: var(--accent);
-      color: #fff;
-      font-weight: 400;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      aspect-ratio: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: auto;
-      padding: 0;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--text);
+      background: var(--cell-bg);
+      border-radius: 4px;
+      transition: background 0.1s;
     }
 
-    /* Color swatches */
-    .swatches {
-      display: flex;
-      gap: 5px;
-      justify-content: center;
-      margin-top: 12px;
+    .day-cell.other-month {
+      color: var(--subtext);
+      background: transparent;
     }
 
-    .swatch {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 1.5px solid transparent;
-      transition: transform 0.15s, border-color 0.15s;
+    .day-cell.today {
+      background: var(--accent);
+      color: var(--accent-text);
+      font-weight: 400;
     }
 
-    .swatch:hover { transform: scale(1.3); }
-    .swatch.active { border-color: var(--text); transform: scale(1.2); }
+    /* ── Pastel Notion themes ── */
+    .theme-default {
+      --accent:      #c4dff5;
+      --accent-text: #2a6496;
+      --cell-bg:     #eef5fb;
+    }
+    .theme-grey {
+      --accent:      #d9d9d7;
+      --accent-text: #4a4a4a;
+      --cell-bg:     #f1f1ef;
+    }
+    .theme-brown {
+      --accent:      #e8d5cc;
+      --accent-text: #6b3a2a;
+      --cell-bg:     #f5efec;
+    }
+    .theme-orange {
+      --accent:      #fad9b8;
+      --accent-text: #8f4a0a;
+      --cell-bg:     #fdf0e4;
+    }
+    .theme-yellow {
+      --accent:      #f9e8b8;
+      --accent-text: #7a5a10;
+      --cell-bg:     #fdf6df;
+    }
+    .theme-green {
+      --accent:      #b8dfd9;
+      --accent-text: #1a5e54;
+      --cell-bg:     #e4f3f1;
+    }
+    .theme-blue {
+      --accent:      #b8d4e8;
+      --accent-text: #1a4f72;
+      --cell-bg:     #e4eff7;
+    }
+    .theme-purple {
+      --accent:      #d3c4eb;
+      --accent-text: #4a2a7a;
+      --cell-bg:     #ede7f6;
+    }
+    .theme-pink {
+      --accent:      #f0c4db;
+      --accent-text: #7a1a50;
+      --cell-bg:     #f9e4f0;
+    }
+    .theme-red {
+      --accent:      #f5c4c4;
+      --accent-text: #7a1a1a;
+      --cell-bg:     #fce8e8;
+    }
 
-    /* ── Themes ── */
-    /* Default blue */
-    .theme-default { --accent: #2eaadc; --accent-light: #e8f4f9; }
-    /* Grey */
-    .theme-grey    { --accent: #9b9a97; --accent-light: #f1f1ef; }
-    /* Brown */
-    .theme-brown   { --accent: #64473a; --accent-light: #f3eeee; }
-    /* Orange */
-    .theme-orange  { --accent: #d9730d; --accent-light: #faebdd; }
-    /* Yellow */
-    .theme-yellow  { --accent: #cb912f; --accent-light: #fbf3db; }
-    /* Green */
-    .theme-green   { --accent: #0f7b6c; --accent-light: #ddedea; }
-    /* Blue */
-    .theme-blue    { --accent: #0b6e99; --accent-light: #ddebf1; }
-    /* Purple */
-    .theme-purple  { --accent: #6940a5; --accent-light: #eae4f2; }
-    /* Pink */
-    .theme-pink    { --accent: #ad1a72; --accent-light: #f4dfeb; }
-    /* Red */
-    .theme-red     { --accent: #e03e3e; --accent-light: #fbe4e4; }
-
-    /* Dark mode */
+    /* ── Dark mode ── */
     @media (prefers-color-scheme: dark) {
       :root {
-        --text: #e8e8e8;
+        --text:    #e0e0e0;
         --subtext: #555;
-        --faint: #333;
+        --faint:   #333;
+        --border:  #2a2a2a;
       }
-      .day-cell.today { color: #fff; }
-      .swatch.active { border-color: #e8e8e8; }
+      .popover {
+        background: #1e1e1e;
+        border-color: #333;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      }
+      .day-cell { background: #1e1e1e; }
+      .day-cell.other-month { background: transparent; }
+      .theme-default .day-cell { background: #1a2530; }
+      .theme-grey    .day-cell { background: #202020; }
+      .theme-brown   .day-cell { background: #251c18; }
+      .theme-orange  .day-cell { background: #261a0e; }
+      .theme-yellow  .day-cell { background: #25200e; }
+      .theme-green   .day-cell { background: #0e2220; }
+      .theme-blue    .day-cell { background: #0e1c26; }
+      .theme-purple  .day-cell { background: #1a1026; }
+      .theme-pink    .day-cell { background: #250e1a; }
+      .theme-red     .day-cell { background: #250e0e; }
+      .swatch.active { border-color: #ccc; }
     }
   </style>
 </head>
 <body>
 <div class="widget theme-default" id="widget">
+
   <div class="header">
-    <div class="month-label" id="monthLabel">January 2026</div>
-    <div class="nav">
-      <button id="prev">&#8592;</button>
-      <button id="next">&#8594;</button>
+    <button class="nav-btn" id="prev">&#171;</button>
+    <div class="header-center">
+      <div class="month-label" id="monthLabel">January 2026</div>
+    </div>
+    <div class="header-right">
+      <button class="nav-btn" id="next">&#187;</button>
+      <div class="popover-wrap" id="popoverWrap">
+        <button class="menu-btn" id="menuBtn">···</button>
+        <div class="popover" id="popover">
+          <div class="popover-label">Color</div>
+          <div class="swatch-grid" id="swatchGrid"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -198,7 +297,6 @@
 
   <div class="dates-grid" id="datesGrid"></div>
 
-  <div class="swatches" id="swatches"></div>
 </div>
 
 <script>
@@ -206,43 +304,71 @@
                   'July','August','September','October','November','December'];
 
   const THEMES = [
-    { name: 'default', color: '#2eaadc' },
-    { name: 'grey',    color: '#9b9a97' },
-    { name: 'brown',   color: '#64473a' },
-    { name: 'orange',  color: '#d9730d' },
-    { name: 'yellow',  color: '#cb912f' },
-    { name: 'green',   color: '#0f7b6c' },
-    { name: 'blue',    color: '#0b6e99' },
-    { name: 'purple',  color: '#6940a5' },
-    { name: 'pink',    color: '#ad1a72' },
-    { name: 'red',     color: '#e03e3e' },
+    { name: 'default', color: '#c4dff5', label: 'Blue'    },
+    { name: 'grey',    color: '#d9d9d7', label: 'Grey'    },
+    { name: 'brown',   color: '#e8d5cc', label: 'Brown'   },
+    { name: 'orange',  color: '#fad9b8', label: 'Orange'  },
+    { name: 'yellow',  color: '#f9e8b8', label: 'Yellow'  },
+    { name: 'green',   color: '#b8dfd9', label: 'Green'   },
+    { name: 'blue',    color: '#b8d4e8', label: 'Blue'    },
+    { name: 'purple',  color: '#d3c4eb', label: 'Purple'  },
+    { name: 'pink',    color: '#f0c4db', label: 'Pink'    },
+    { name: 'red',     color: '#f5c4c4', label: 'Red'     },
   ];
 
-  const widget = document.getElementById('widget');
-  const today = new Date();
-  let current = { year: today.getFullYear(), month: today.getMonth() };
+  const widget   = document.getElementById('widget');
+  const popover  = document.getElementById('popover');
+  const menuBtn  = document.getElementById('menuBtn');
+  const today    = new Date();
+  let current    = { year: today.getFullYear(), month: today.getMonth() };
   let activeTheme = 'default';
 
+  /* ── Popover toggle ── */
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popover.classList.toggle('open');
+  });
+
+  document.addEventListener('click', () => popover.classList.remove('open'));
+  popover.addEventListener('click', (e) => e.stopPropagation());
+
+  /* ── Swatches ── */
+  const grid = document.getElementById('swatchGrid');
+  THEMES.forEach(t => {
+    const dot = document.createElement('div');
+    dot.className = 'swatch' + (t.name === activeTheme ? ' active' : '');
+    dot.style.background = t.color;
+    dot.title = t.label;
+    dot.addEventListener('click', () => {
+      widget.classList.remove(`theme-${activeTheme}`);
+      activeTheme = t.name;
+      widget.classList.add(`theme-${activeTheme}`);
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      dot.classList.add('active');
+      popover.classList.remove('open');
+    });
+    grid.appendChild(dot);
+  });
+
+  /* ── Calendar render ── */
   function renderCalendar() {
     const { year, month } = current;
     document.getElementById('monthLabel').textContent = `${MONTHS[month]} ${year}`;
 
-    const grid = document.getElementById('datesGrid');
-    grid.innerHTML = '';
+    const dateGrid = document.getElementById('datesGrid');
+    dateGrid.innerHTML = '';
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrev = new Date(year, month, 0).getDate();
+    const firstDay     = new Date(year, month, 1).getDay();
+    const daysInMonth  = new Date(year, month + 1, 0).getDate();
+    const daysInPrev   = new Date(year, month, 0).getDate();
 
-    // Leading empty cells (prev month)
     for (let i = 0; i < firstDay; i++) {
       const cell = document.createElement('div');
       cell.className = 'day-cell other-month';
       cell.textContent = daysInPrev - firstDay + 1 + i;
-      grid.appendChild(cell);
+      dateGrid.appendChild(cell);
     }
 
-    // Current month days
     for (let d = 1; d <= daysInMonth; d++) {
       const cell = document.createElement('div');
       const isToday = d === today.getDate() &&
@@ -250,37 +376,17 @@
                       year === today.getFullYear();
       cell.className = 'day-cell' + (isToday ? ' today' : '');
       cell.textContent = d;
-      grid.appendChild(cell);
+      dateGrid.appendChild(cell);
     }
 
-    // Trailing cells
-    const total = firstDay + daysInMonth;
+    const total    = firstDay + daysInMonth;
     const trailing = total % 7 === 0 ? 0 : 7 - (total % 7);
     for (let i = 1; i <= trailing; i++) {
       const cell = document.createElement('div');
       cell.className = 'day-cell other-month';
       cell.textContent = i;
-      grid.appendChild(cell);
+      dateGrid.appendChild(cell);
     }
-  }
-
-  function renderSwatches() {
-    const container = document.getElementById('swatches');
-    container.innerHTML = '';
-    THEMES.forEach(t => {
-      const dot = document.createElement('div');
-      dot.className = 'swatch' + (t.name === activeTheme ? ' active' : '');
-      dot.style.background = t.color;
-      dot.title = t.name;
-      dot.addEventListener('click', () => {
-        widget.classList.remove(`theme-${activeTheme}`);
-        activeTheme = t.name;
-        widget.classList.add(`theme-${activeTheme}`);
-        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-        dot.classList.add('active');
-      });
-      container.appendChild(dot);
-    });
   }
 
   document.getElementById('prev').addEventListener('click', () => {
@@ -296,7 +402,6 @@
   });
 
   renderCalendar();
-  renderSwatches();
 </script>
 </body>
 </html>
