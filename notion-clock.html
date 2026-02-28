@@ -26,14 +26,14 @@
       text-align: center;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 2px;
       user-select: none;
     }
 
     .time {
-      font-size: clamp(48px, 10vw, 80px);
+      font-size: clamp(32px, 7vw, 52px);
       font-weight: 200;
-      letter-spacing: -2px;
+      letter-spacing: -1px;
       color: #1a1a1a;
       line-height: 1;
       font-variant-numeric: tabular-nums;
@@ -44,31 +44,53 @@
       font-weight: 300;
       color: #aaa;
       vertical-align: super;
-      margin-left: 4px;
+      margin-left: 3px;
       letter-spacing: 0;
     }
 
     .date {
-      font-size: clamp(12px, 2.5vw, 15px);
+      font-size: clamp(10px, 2vw, 12px);
       font-weight: 300;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.18em;
       color: #999;
       text-transform: uppercase;
     }
 
     .divider {
-      width: 24px;
+      width: 20px;
       height: 1px;
       background: #e0e0e0;
-      margin: 4px auto;
+      margin: 3px auto;
     }
 
     .greeting {
-      font-size: clamp(10px, 2vw, 13px);
+      font-size: clamp(9px, 1.5vw, 11px);
       font-weight: 300;
       letter-spacing: 0.15em;
       color: #bbb;
       text-transform: uppercase;
+    }
+
+    /* ── Dark mode ── */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: transparent;
+      }
+      .time {
+        color: #f0f0f0;
+      }
+      .time .seconds {
+        color: #555;
+      }
+      .date {
+        color: #666;
+      }
+      .divider {
+        background: #333;
+      }
+      .greeting {
+        color: #444;
+      }
     }
   </style>
 </head>
