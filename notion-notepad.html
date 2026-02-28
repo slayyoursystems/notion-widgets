@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notepad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; --text:#1a1a1a; --subtext:#bbb; --border:#ebebeb; }
+    body { font-family:'Inter',sans-serif; background:transparent; display:flex; flex-direction:column; height:100vh; padding:24px 14px 0 14px; overflow:hidden; }
+    .header { font-size:12px; font-weight:300; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); text-align:center; margin-bottom:12px; flex-shrink:0; }
+    .pad-wrap { flex:1; background:var(--cell-bg); border-radius:6px; display:flex; overflow:hidden; }
+    textarea { flex:1; background:transparent; border:none; outline:none; resize:none; font-family:'Inter',sans-serif; font-size:12px; font-weight:300; line-height:1.7; color:var(--text); padding:12px 14px; caret-color:var(--accent-text); }
+    textarea::placeholder { color:var(--subtext); font-style:italic; }
+    .footer { display:flex; align-items:center; justify-content:space-between; padding:6px 0 10px; flex-shrink:0; }
+    .word-count { font-size:9px; font-weight:300; letter-spacing:0.1em; color:var(--subtext); text-transform:uppercase; min-width:40px; }
+    .footer-btn { background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif; color:var(--subtext); padding:6px 12px; border-radius:5px; font-size:11px; letter-spacing:0.05em; transition:color .15s,background .15s; }
+    .footer-btn:hover { color:var(--text); background:var(--cell-bg); }
+    .popover-wrap { position:relative; }
+    .popover { display:none; position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px; box-shadow:0 4px 16px rgba(0,0,0,.08); z-index:100; width:148px; }
+    .popover.open { display:block; }
+    .popover-label { font-size:9px; font-weight:400; letter-spacing:0.12em; text-transform:uppercase; color:var(--subtext); margin-bottom:8px; }
+    .swatch-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:8px; }
+    .swatch { width:20px; height:20px; border-radius:4px; cursor:pointer; border:1.5px solid transparent; transition:transform .12s; }
+    .swatch:hover { transform:scale(1.15); }
+    .swatch.active { border-color:#666; }
+    .popover-divider { height:1px; background:var(--border); margin:8px 0; }
+    .clear-btn { width:100%; background:none; border:none; font-family:'Inter',sans-serif; font-size:10px; font-weight:300; letter-spacing:0.1em; text-transform:uppercase; color:#e05555; cursor:pointer; padding:4px 0; text-align:left; transition:opacity .15s; }
+    .clear-btn:hover { opacity:.7; }
+    .theme-default { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; }
+    .theme-grey    { --accent:#c8cacc; --accent-text:#3a3a3a; --cell-bg:#ebeced; }
+    .theme-brown   { --accent:#cec8c5; --accent-text:#5c3d2e; --cell-bg:#e9e5e3; }
+    .theme-orange  { --accent:#f0ceaa; --accent-text:#7a3c08; --cell-bg:#faebdd; }
+    .theme-yellow  { --accent:#eed9a0; --accent-text:#6a4e10; --cell-bg:#fbf3db; }
+    .theme-green   { --accent:#aacfc9; --accent-text:#1a5248; --cell-bg:#ddedea; }
+    .theme-blue    { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; }
+    .theme-purple  { --accent:#cfc4e0; --accent-text:#42286e; --cell-bg:#eae4f2; }
+    .theme-pink    { --accent:#e4bcce; --accent-text:#6e1a46; --cell-bg:#f4dfeb; }
+    .theme-red     { --accent:#f0bcbc; --accent-text:#6e1a1a; --cell-bg:#fbe4e4; }
+    @media (prefers-color-scheme:dark) {
+      :root { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a; }
+      .popover { background:#1e1e1e; border-color:#333; }
+      .popover-divider { background:#333; }
+      .swatch.active { border-color:#ccc; }
+      .theme-default .pad-wrap { background:#1a2530; }
+      .theme-grey    .pad-wrap { background:#202020; }
+      .theme-brown   .pad-wrap { background:#251c18; }
+      .theme-orange  .pad-wrap { background:#261a0e; }
+      .theme-yellow  .pad-wrap { background:#25200e; }
+      .theme-green   .pad-wrap { background:#0e2220; }
+      .theme-blue    .pad-wrap { background:#0e1c26; }
+      .theme-purple  .pad-wrap { background:#1a1026; }
+      .theme-pink    .pad-wrap { background:#250e1a; }
+      .theme-red     .pad-wrap { background:#250e0e; }
+    }
+  </style>
+</head>
+<body>
+<div id="widget" style="display:flex;flex-direction:column;height:100%;width:100%">
+  <div class="header">notes</div>
+  <div class="pad-wrap"><textarea id="pad" placeholder="start typing..."></textarea></div>
+  <div class="footer">
+    <span class="word-count" id="wc">0 words</span>
+    <div class="popover-wrap">
+      <button class="footer-btn" id="menuBtn">···</button>
+      <div class="popover" id="popover">
+        <div class="popover-label">Color</div>
+        <div class="swatch-grid" id="swatchGrid"></div>
+        <div class="popover-divider"></div>
+        <button class="clear-btn" id="clearBtn">clear note</button>
+      </div>
+    </div>
+    <div style="width:40px"></div>
+  </div>
+</div>
+<script>
+  const THEMES=[{name:'default',color:'#ddebf1'},{name:'grey',color:'#ebeced'},{name:'brown',color:'#e9e5e3'},{name:'orange',color:'#faebdd'},{name:'yellow',color:'#fbf3db'},{name:'green',color:'#ddedea'},{name:'blue',color:'#ddebf1'},{name:'purple',color:'#eae4f2'},{name:'pink',color:'#f4dfeb'},{name:'red',color:'#fbe4e4'}];
+  const widget=document.getElementById('widget'),pad=document.getElementById('pad'),popover=document.getElementById('popover'),menuBtn=document.getElementById('menuBtn');
+  let activeTheme=localStorage.getItem('np-theme')||'default';
+  widget.classList.add('theme-'+activeTheme);
+  pad.value=localStorage.getItem('np-note')||'';
+  updateWC();
+  let saveTimer;
+  pad.addEventListener('input',()=>{updateWC();clearTimeout(saveTimer);saveTimer=setTimeout(()=>localStorage.setItem('np-note',pad.value),500);});
+  function updateWC(){const w=pad.value.trim()?pad.value.trim().split(/\s+/).length:0;document.getElementById('wc').textContent=w+(w===1?' word':' words');}
+  THEMES.forEach(t=>{const dot=document.createElement('div');dot.className='swatch'+(t.name===activeTheme?' active':'');dot.style.background=t.color;dot.addEventListener('click',()=>{widget.classList.remove('theme-'+activeTheme);activeTheme=t.name;widget.classList.add('theme-'+activeTheme);localStorage.setItem('np-theme',activeTheme);document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));dot.classList.add('active');popover.classList.remove('open');});document.getElementById('swatchGrid').appendChild(dot);});
+  document.getElementById('clearBtn').addEventListener('click',()=>{if(confirm('Clear your note?')){pad.value='';localStorage.removeItem('np-note');updateWC();popover.classList.remove('open');}});
+  menuBtn.addEventListener('click',e=>{e.stopPropagation();popover.classList.toggle('open');});
+  document.addEventListener('click',()=>popover.classList.remove('open'));
+  popover.addEventListener('click',e=>e.stopPropagation());
+</script>
+</body>
+</html>

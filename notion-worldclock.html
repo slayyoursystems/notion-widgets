@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Clock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; --text:#1a1a1a; --subtext:#aaa; --border:#ebebeb; }
+    body { font-family:'Inter',sans-serif; background:transparent; display:flex; flex-direction:column; padding:24px 14px 0 14px; overflow:hidden; }
+    .header { font-size:12px; font-weight:300; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); text-align:center; margin-bottom:10px; }
+    .cities { display:flex; flex-direction:column; gap:4px; }
+    .city-row { display:flex; align-items:center; justify-content:space-between; background:var(--cell-bg); border-radius:5px; padding:8px 12px; }
+    .city-left { display:flex; flex-direction:column; gap:2px; }
+    .city-name { font-size:9px; font-weight:300; letter-spacing:0.18em; text-transform:uppercase; color:var(--subtext); }
+    .city-time { font-size:clamp(20px, 8vw, 32px); font-weight:300; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-0.5px; line-height:1; }
+    .city-right { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+    .city-day { font-size:9px; font-weight:300; color:var(--accent-text); background:var(--accent); border-radius:3px; padding:1px 5px; letter-spacing:0.05em; }
+    .city-date { font-size:9px; font-weight:300; color:var(--subtext); letter-spacing:0.05em; }
+    .footer { display:flex; align-items:center; justify-content:center; padding:8px 0 10px; }
+    .footer-btn { background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif; color:var(--subtext); padding:6px 12px; border-radius:5px; font-size:11px; letter-spacing:0.05em; transition:color .15s,background .15s; }
+    .footer-btn:hover { color:var(--text); background:var(--cell-bg); }
+    .popover-wrap { position:relative; }
+    .popover { display:none; position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px; box-shadow:0 4px 16px rgba(0,0,0,.08); z-index:100; width:180px; }
+    .popover.open { display:block; }
+    .popover-label { font-size:9px; font-weight:400; letter-spacing:0.12em; text-transform:uppercase; color:var(--subtext); margin-bottom:8px; }
+    .swatch-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:10px; }
+    .swatch { width:20px; height:20px; border-radius:4px; cursor:pointer; border:1.5px solid transparent; transition:transform .12s; }
+    .swatch:hover { transform:scale(1.15); }
+    .swatch.active { border-color:#666; }
+    .popover-divider { height:1px; background:var(--border); margin:8px 0; }
+    .city-list-item { display:flex; align-items:center; justify-content:space-between; padding:3px 0; }
+    .city-list-name { font-size:10px; font-weight:300; color:var(--text); }
+    .city-remove { background:none; border:none; cursor:pointer; color:var(--subtext); font-size:13px; padding:0 2px; transition:color .12s; }
+    .city-remove:hover { color:#e05555; }
+    .city-add { display:flex; gap:4px; margin-top:6px; }
+    .city-select { flex:1; background:var(--cell-bg); border:none; outline:none; border-radius:4px; padding:4px 6px; font-family:'Inter',sans-serif; font-size:10px; font-weight:300; color:var(--text); }
+    .city-add-btn { background:var(--accent); border:none; border-radius:4px; padding:4px 8px; font-family:'Inter',sans-serif; font-size:10px; font-weight:300; color:var(--accent-text); cursor:pointer; }
+    .theme-default { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; }
+    .theme-grey    { --accent:#c8cacc; --accent-text:#3a3a3a; --cell-bg:#ebeced; }
+    .theme-brown   { --accent:#cec8c5; --accent-text:#5c3d2e; --cell-bg:#e9e5e3; }
+    .theme-orange  { --accent:#f0ceaa; --accent-text:#7a3c08; --cell-bg:#faebdd; }
+    .theme-yellow  { --accent:#eed9a0; --accent-text:#6a4e10; --cell-bg:#fbf3db; }
+    .theme-green   { --accent:#aacfc9; --accent-text:#1a5248; --cell-bg:#ddedea; }
+    .theme-blue    { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; }
+    .theme-purple  { --accent:#cfc4e0; --accent-text:#42286e; --cell-bg:#eae4f2; }
+    .theme-pink    { --accent:#e4bcce; --accent-text:#6e1a46; --cell-bg:#f4dfeb; }
+    .theme-red     { --accent:#f0bcbc; --accent-text:#6e1a1a; --cell-bg:#fbe4e4; }
+    @media (prefers-color-scheme:dark) {
+      :root { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a; }
+      .popover { background:#1e1e1e; border-color:#333; }
+      .city-select { color:#e0e0e0; }
+      .swatch.active { border-color:#ccc; }
+      .theme-default .city-row { background:#1a2530; }
+      .theme-grey    .city-row { background:#202020; }
+      .theme-brown   .city-row { background:#251c18; }
+      .theme-orange  .city-row { background:#261a0e; }
+      .theme-yellow  .city-row { background:#25200e; }
+      .theme-green   .city-row { background:#0e2220; }
+      .theme-blue    .city-row { background:#0e1c26; }
+      .theme-purple  .city-row { background:#1a1026; }
+      .theme-pink    .city-row { background:#250e1a; }
+      .theme-red     .city-row { background:#250e0e; }
+    }
+  </style>
+</head>
+<body>
+<div id="widget">
+  <div class="header">world clock</div>
+  <div class="cities" id="cities"></div>
+  <div class="footer">
+    <div class="popover-wrap">
+      <button class="footer-btn" id="menuBtn">···</button>
+      <div class="popover" id="popover">
+        <div class="popover-label">Color</div>
+        <div class="swatch-grid" id="swatchGrid"></div>
+        <div class="popover-divider"></div>
+        <div class="popover-label">Cities</div>
+        <div id="cityListItems"></div>
+        <div class="city-add">
+          <select class="city-select" id="citySelect"></select>
+          <button class="city-add-btn" id="cityAddBtn">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const ALL_CITIES=[
+    {name:'New York',tz:'America/New_York'},{name:'Los Angeles',tz:'America/Los_Angeles'},
+    {name:'Chicago',tz:'America/Chicago'},{name:'Toronto',tz:'America/Toronto'},
+    {name:'São Paulo',tz:'America/Sao_Paulo'},{name:'Mexico City',tz:'America/Mexico_City'},
+    {name:'London',tz:'Europe/London'},{name:'Paris',tz:'Europe/Paris'},
+    {name:'Berlin',tz:'Europe/Berlin'},{name:'Cairo',tz:'Africa/Cairo'},
+    {name:'Nairobi',tz:'Africa/Nairobi'},{name:'Lagos',tz:'Africa/Lagos'},
+    {name:'Dubai',tz:'Asia/Dubai'},{name:'Mumbai',tz:'Asia/Kolkata'},
+    {name:'Bangkok',tz:'Asia/Bangkok'},{name:'Singapore',tz:'Asia/Singapore'},
+    {name:'Hong Kong',tz:'Asia/Hong_Kong'},{name:'Seoul',tz:'Asia/Seoul'},
+    {name:'Tokyo',tz:'Asia/Tokyo'},{name:'Sydney',tz:'Australia/Sydney'},
+    {name:'Auckland',tz:'Pacific/Auckland'}
+  ];
+  const THEMES=[{name:'default',color:'#ddebf1'},{name:'grey',color:'#ebeced'},{name:'brown',color:'#e9e5e3'},{name:'orange',color:'#faebdd'},{name:'yellow',color:'#fbf3db'},{name:'green',color:'#ddedea'},{name:'blue',color:'#ddebf1'},{name:'purple',color:'#eae4f2'},{name:'pink',color:'#f4dfeb'},{name:'red',color:'#fbe4e4'}];
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const widget=document.getElementById('widget'),popover=document.getElementById('popover'),menuBtn=document.getElementById('menuBtn');
+  let activeTheme=localStorage.getItem('wc-theme')||'default';
+  let cities=JSON.parse(localStorage.getItem('wc-cities')||'null')||[{name:'New York',tz:'America/New_York'},{name:'London',tz:'Europe/London'},{name:'Tokyo',tz:'Asia/Tokyo'}];
+  widget.classList.add('theme-'+activeTheme);
+
+  function pad(n){return String(n).padStart(2,'0');}
+
+  function renderCities(){
+    const container=document.getElementById('cities');
+    const localDate=new Date();
+    container.innerHTML='';
+    cities.forEach(c=>{
+      const now=new Date();
+      const fmt=new Intl.DateTimeFormat('en-US',{timeZone:c.tz,hour:'2-digit',minute:'2-digit',hour12:false,day:'numeric'});
+      const parts=fmt.formatToParts(now);
+      const h=parts.find(p=>p.type==='hour')?.value||'00';
+      const m=parts.find(p=>p.type==='minute')?.value||'00';
+      const d=parseInt(parts.find(p=>p.type==='day')?.value||'0');
+      const localD=localDate.getDate();
+      const diff=d-localD;
+      const dateFmt=new Intl.DateTimeFormat('en-US',{timeZone:c.tz,weekday:'short',month:'short',day:'numeric'});
+      const dateStr=dateFmt.format(now);
+      const row=document.createElement('div');
+      row.className='city-row';
+      row.innerHTML=`
+        <div class="city-left">
+          <div class="city-name">${c.name}</div>
+          <div class="city-time">${h}:${m}</div>
+        </div>
+        <div class="city-right">
+          ${diff!==0?`<div class="city-day">${diff>0?'+'+diff:diff}d</div>`:''}
+          <div class="city-date">${dateStr}</div>
+        </div>`;
+      container.appendChild(row);
+    });
+  }
+
+  function renderCityList(){
+    const el=document.getElementById('cityListItems');
+    el.innerHTML='';
+    cities.forEach((c,i)=>{
+      const row=document.createElement('div');
+      row.className='city-list-item';
+      row.innerHTML=`<span class="city-list-name">${c.name}</span><button class="city-remove" data-i="${i}">×</button>`;
+      row.querySelector('.city-remove').addEventListener('click',()=>{
+        if(cities.length<=2)return;
+        cities.splice(i,1);
+        localStorage.setItem('wc-cities',JSON.stringify(cities));
+        renderCities();renderCityList();populateSelect();
+      });
+      el.appendChild(row);
+    });
+  }
+
+  function populateSelect(){
+    const sel=document.getElementById('citySelect');
+    const existing=cities.map(c=>c.tz);
+    sel.innerHTML='';
+    ALL_CITIES.filter(c=>!existing.includes(c.tz)).forEach(c=>{
+      const opt=document.createElement('option');
+      opt.value=c.tz;opt.textContent=c.name;
+      sel.appendChild(opt);
+    });
+    document.getElementById('cityAddBtn').disabled=cities.length>=4;
+  }
+
+  document.getElementById('cityAddBtn').addEventListener('click',()=>{
+    if(cities.length>=4)return;
+    const sel=document.getElementById('citySelect');
+    const tz=sel.value;
+    const name=ALL_CITIES.find(c=>c.tz===tz)?.name||tz;
+    cities.push({name,tz});
+    localStorage.setItem('wc-cities',JSON.stringify(cities));
+    renderCities();renderCityList();populateSelect();
+  });
+
+  THEMES.forEach(t=>{
+    const dot=document.createElement('div');
+    dot.className='swatch'+(t.name===activeTheme?' active':'');
+    dot.style.background=t.color;
+    dot.addEventListener('click',()=>{
+      widget.classList.remove('theme-'+activeTheme);
+      activeTheme=t.name;
+      widget.classList.add('theme-'+activeTheme);
+      localStorage.setItem('wc-theme',activeTheme);
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+      dot.classList.add('active');
+      popover.classList.remove('open');
+    });
+    document.getElementById('swatchGrid').appendChild(dot);
+  });
+
+  menuBtn.addEventListener('click',e=>{e.stopPropagation();popover.classList.toggle('open');renderCityList();populateSelect();});
+  document.addEventListener('click',()=>popover.classList.remove('open'));
+  popover.addEventListener('click',e=>e.stopPropagation());
+
+  renderCities();
+  setInterval(renderCities,1000);
+</script>
+</body>
+</html>

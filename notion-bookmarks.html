@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bookmarks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --accent:      #b8d4e3;
+      --accent-text: #1a4f6e;
+      --cell-bg:     #ddebf1;
+      --text:        #1a1a1a;
+      --subtext:     #aaa;
+      --border:      #ebebeb;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 14px 0 14px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    /* ── Bookmark list ── */
+    .list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 2px;
+    }
+
+    .list::-webkit-scrollbar { width: 3px; }
+    .list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .bm-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: var(--cell-bg);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-decoration: none;
+    }
+
+    .bm-row:hover { opacity: 0.75; }
+    .bm-row:hover .bm-delete { opacity: 1; }
+
+    .bm-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .bm-label {
+      flex: 1;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bm-domain {
+      font-size: 9px;
+      font-weight: 300;
+      color: var(--subtext);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .bm-delete {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 0 2px;
+      transition: opacity 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .bm-delete:hover { color: var(--text); }
+
+    .empty {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--subtext);
+      letter-spacing: 0.08em;
+      padding: 24px 0;
+    }
+
+    /* ── Add form ── */
+    .add-form {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 0 4px;
+      flex-shrink: 0;
+    }
+
+    .add-form.open { display: flex; }
+
+    .add-form input {
+      background: var(--cell-bg);
+      border: none;
+      outline: none;
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--text);
+    }
+
+    .add-form input::placeholder { color: var(--subtext); }
+
+    .form-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .form-btn {
+      flex: 1;
+      background: var(--cell-bg);
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--subtext);
+      cursor: pointer;
+      transition: all 0.12s;
+      letter-spacing: 0.05em;
+    }
+
+    .form-btn.primary {
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    .form-btn:hover { opacity: 0.75; }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0 10px;
+      flex-shrink: 0;
+    }
+
+    .footer-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      color: var(--subtext);
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-size: 13px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .footer-btn:hover { color: var(--text); background: var(--cell-bg); }
+
+    /* ── Popover ── */
+    .popover-wrap { position: relative; }
+
+    .popover {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+      width: 148px;
+    }
+
+    .popover.open { display: block; }
+
+    .popover-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtext);
+      margin-bottom: 8px;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: transform 0.12s;
+    }
+
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.active { border-color: #666; }
+
+    /* ── Themes ── */
+    .theme-default { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ddebf1; }
+    .theme-grey    { --accent: #c8cacc; --accent-text: #3a3a3a; --cell-bg: #ebeced; }
+    .theme-brown   { --accent: #cec8c5; --accent-text: #5c3d2e; --cell-bg: #e9e5e3; }
+    .theme-orange  { --accent: #f0ceaa; --accent-text: #7a3c08; --cell-bg: #faebdd; }
+    .theme-yellow  { --accent: #eed9a0; --accent-text: #6a4e10; --cell-bg: #fbf3db; }
+    .theme-green   { --accent: #aacfc9; --accent-text: #1a5248; --cell-bg: #ddedea; }
+    .theme-blue    { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ddebf1; }
+    .theme-purple  { --accent: #cfc4e0; --accent-text: #42286e; --cell-bg: #eae4f2; }
+    .theme-pink    { --accent: #e4bcce; --accent-text: #6e1a46; --cell-bg: #f4dfeb; }
+    .theme-red     { --accent: #f0bcbc; --accent-text: #6e1a1a; --cell-bg: #fbe4e4; }
+
+    @media (prefers-color-scheme: dark) {
+      :root { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a; }
+      .popover { background: #1e1e1e; border-color: #333; }
+      .add-form input { color: #e0e0e0; }
+      .swatch.active { border-color: #ccc; }
+    }
+  </style>
+</head>
+<body>
+<div id="widget">
+  <div class="header">bookmarks</div>
+
+  <div class="list" id="list"></div>
+
+  <div class="add-form" id="addForm">
+    <input type="text" id="labelInput" placeholder="label" autocomplete="off" />
+    <input type="url"  id="urlInput"   placeholder="https://" autocomplete="off" />
+    <div class="form-row">
+      <button class="form-btn" id="cancelBtn">cancel</button>
+      <button class="form-btn primary" id="saveBtn">save</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="footer-btn" id="addBtn">+</button>
+    <div class="popover-wrap">
+      <button class="footer-btn" id="menuBtn" style="font-size:11px;letter-spacing:.05em">···</button>
+      <div class="popover" id="popover">
+        <div class="popover-label">Color</div>
+        <div class="swatch-grid" id="swatchGrid"></div>
+      </div>
+    </div>
+    <div style="width:37px"></div>
+  </div>
+</div>
+
+<script>
+  const THEMES = [
+    { name:'default', color:'#ddebf1' }, { name:'grey',   color:'#ebeced' },
+    { name:'brown',   color:'#e9e5e3' }, { name:'orange', color:'#faebdd' },
+    { name:'yellow',  color:'#fbf3db' }, { name:'green',  color:'#ddedea' },
+    { name:'blue',    color:'#ddebf1' }, { name:'purple', color:'#eae4f2' },
+    { name:'pink',    color:'#f4dfeb' }, { name:'red',    color:'#fbe4e4' },
+  ];
+
+  const DEFAULT_BMS = [
+    { label:'Notion',  url:'https://notion.so' },
+    { label:'Google',  url:'https://google.com' },
+    { label:'GitHub',  url:'https://github.com' },
+  ];
+
+  const widget  = document.getElementById('widget');
+  const popover = document.getElementById('popover');
+  const menuBtn = document.getElementById('menuBtn');
+  const addBtn  = document.getElementById('addBtn');
+  const addForm = document.getElementById('addForm');
+
+  let activeTheme = localStorage.getItem('bm-theme') || 'default';
+  let bookmarks   = JSON.parse(localStorage.getItem('bm-list') || 'null') || DEFAULT_BMS;
+
+  widget.classList.add(`theme-${activeTheme}`);
+
+  function getDomain(url) {
+    try { return new URL(url).hostname.replace('www.',''); } catch { return ''; }
+  }
+
+  function render() {
+    const list = document.getElementById('list');
+    if (!bookmarks.length) {
+      list.innerHTML = '<div class="empty">no bookmarks yet</div>';
+      return;
+    }
+    list.innerHTML = '';
+    bookmarks.forEach((bm, i) => {
+      const a = document.createElement('a');
+      a.className = 'bm-row';
+      a.href = bm.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.innerHTML = `
+        <div class="bm-dot"></div>
+        <span class="bm-label">${bm.label}</span>
+        <span class="bm-domain">${getDomain(bm.url)}</span>
+        <button class="bm-delete" data-i="${i}">×</button>`;
+      a.querySelector('.bm-delete').addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        bookmarks.splice(i, 1);
+        localStorage.setItem('bm-list', JSON.stringify(bookmarks));
+        render();
+      });
+      list.appendChild(a);
+    });
+  }
+
+  // Swatches
+  THEMES.forEach(t => {
+    const dot = document.createElement('div');
+    dot.className = 'swatch' + (t.name === activeTheme ? ' active' : '');
+    dot.style.background = t.color;
+    dot.addEventListener('click', () => {
+      widget.classList.remove(`theme-${activeTheme}`);
+      activeTheme = t.name;
+      widget.classList.add(`theme-${activeTheme}`);
+      localStorage.setItem('bm-theme', activeTheme);
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      dot.classList.add('active');
+      popover.classList.remove('open');
+    });
+    document.getElementById('swatchGrid').appendChild(dot);
+  });
+
+  // Add form
+  addBtn.addEventListener('click', () => addForm.classList.toggle('open'));
+  document.getElementById('cancelBtn').addEventListener('click', () => {
+    addForm.classList.remove('open');
+    document.getElementById('labelInput').value = '';
+    document.getElementById('urlInput').value = '';
+  });
+
+  function save() {
+    const label = document.getElementById('labelInput').value.trim();
+    let url = document.getElementById('urlInput').value.trim();
+    if (!label || !url) return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    bookmarks.push({ label, url });
+    localStorage.setItem('bm-list', JSON.stringify(bookmarks));
+    render();
+    document.getElementById('cancelBtn').click();
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', save);
+  document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key==='Enter') save(); });
+
+  // Popover
+  menuBtn.addEventListener('click', e => { e.stopPropagation(); popover.classList.toggle('open'); });
+  document.addEventListener('click', () => popover.classList.remove('open'));
+  popover.addEventListener('click', e => e.stopPropagation());
+
+  render();
+</script>
+</body>
+</html>

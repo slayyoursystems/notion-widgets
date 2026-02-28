@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Widget</title>
+  <style>
+    @import url('https://rsms.me/inter/inter.css');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      color-scheme: light dark;
+      
+      /* Default theme */
+      --accent: #b8d4e3;
+      --accent-text: #1a4f6e;
+      --cell-bg: #ddebf1;
+      
+      /* Light mode */
+      --bg: white;
+      --text: #37474f;
+      --muted: #90a4ae;
+      --border: #eceff1;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1e;
+        --text: #e0e0e0;
+        --muted: #9e9e9e;
+        --border: #2a2a2a;
+      }
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 14px 0 8px;
+      background: transparent;
+      overflow: hidden;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .city {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .menu-btn {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 20px;
+      border-radius: 6px;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .menu-btn:hover {
+      background: var(--cell-bg);
+    }
+
+    .popover {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      margin-top: 8px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .popover.active {
+      display: flex;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 32px);
+      gap: 6px;
+      padding: 8px;
+    }
+
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+      border-color: var(--text);
+    }
+
+    .unit-toggle {
+      padding: 6px 12px;
+      border: none;
+      background: var(--cell-bg);
+      color: var(--text);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .unit-toggle:hover {
+      opacity: 0.8;
+    }
+
+    .temperature {
+      font-size: clamp(40px, 8vw, 72px);
+      font-weight: 300;
+      color: var(--accent-text);
+      line-height: 1;
+      margin: 8px 0;
+    }
+
+    .condition {
+      font-size: 14px;
+      font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .details {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--cell-bg);
+      border-radius: 8px;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .detail-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text);
+    }
+
+    .high-low {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .loading {
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 40px 20px;
+    }
+
+    .error {
+      font-size: 13px;
+      color: #d32f2f;
+      text-align: center;
+      padding: 40px 20px;
+      line-height: 1.5;
+    }
+
+    .divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="city" id="city">—</div>
+      <div style="position: relative;">
+        <button class="menu-btn" id="menuBtn">···</button>
+        <div class="popover" id="popover">
+          <div class="color-grid" id="colorGrid"></div>
+          <button class="unit-toggle" id="unitToggle">°C / °F</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="content">
+      <div class="loading">locating...</div>
+    </div>
+  </div>
+
+  <script>
+    const THEMES = {
+      default: { accent: '#b8d4e3', accentText: '#1a4f6e', cellBg: '#ddebf1' },
+      grey: { accent: '#c8cacc', accentText: '#3a3a3a', cellBg: '#ebeced' },
+      brown: { accent: '#cec8c5', accentText: '#5c3d2e', cellBg: '#e9e5e3' },
+      orange: { accent: '#f0ceaa', accentText: '#7a3c08', cellBg: '#faebdd' },
+      yellow: { accent: '#eed9a0', accentText: '#6a4e10', cellBg: '#fbf3db' },
+      green: { accent: '#aacfc9', accentText: '#1a5248', cellBg: '#ddedea' },
+      blue: { accent: '#b8d4e3', accentText: '#1a4f6e', cellBg: '#ddebf1' },
+      purple: { accent: '#cfc4e0', accentText: '#42286e', cellBg: '#eae4f2' },
+      pink: { accent: '#e4bcce', accentText: '#6e1a46', cellBg: '#f4dfeb' },
+      red: { accent: '#f0bcbc', accentText: '#6e1a1a', cellBg: '#fbe4e4' }
+    };
+
+    const SWATCH_COLORS = ['#ddebf1', '#ebeced', '#e9e5e3', '#faebdd', '#fbf3db', '#ddedea', '#ddebf1', '#eae4f2', '#f4dfeb', '#fbe4e4'];
+    const THEME_KEYS = Object.keys(THEMES);
+
+    const WMO_CODES = {
+      0: 'clear sky',
+      1: 'mostly clear',
+      2: 'partly cloudy',
+      3: 'overcast',
+      45: 'foggy',
+      48: 'foggy',
+      51: 'light drizzle',
+      53: 'drizzle',
+      55: 'heavy drizzle',
+      61: 'light rain',
+      63: 'rain',
+      65: 'heavy rain',
+      71: 'light snow',
+      73: 'snow',
+      75: 'heavy snow',
+      77: 'snow',
+      80: 'light showers',
+      81: 'showers',
+      82: 'heavy showers',
+      95: 'thunderstorm'
+    };
+
+    let currentUnit = localStorage.getItem('weather-unit') || 'C';
+    let currentTheme = localStorage.getItem('wx-theme') || 'default';
+
+    function applyTheme(themeKey) {
+      const theme = THEMES[themeKey];
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      document.documentElement.style.setProperty('--accent-text', theme.accentText);
+      document.documentElement.style.setProperty('--cell-bg', theme.cellBg);
+      currentTheme = themeKey;
+      localStorage.setItem('wx-theme', themeKey);
+    }
+
+    function getWeatherDescription(code) {
+      return WMO_CODES[code] || 'unknown';
+    }
+
+    function convertTemp(celsius) {
+      return currentUnit === 'F' ? Math.round((celsius * 9 / 5) + 32) : Math.round(celsius);
+    }
+
+    function renderColorGrid() {
+      const grid = document.getElementById('colorGrid');
+      grid.innerHTML = '';
+      THEME_KEYS.forEach((key, index) => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = SWATCH_COLORS[index];
+        swatch.title = key;
+        swatch.addEventListener('click', () => {
+          applyTheme(key);
+          document.getElementById('popover').classList.remove('active');
+        });
+        grid.appendChild(swatch);
+      });
+    }
+
+    function initPopover() {
+      const menuBtn = document.getElementById('menuBtn');
+      const popover = document.getElementById('popover');
+
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        popover.classList.toggle('active');
+      });
+
+      document.addEventListener('click', () => {
+        popover.classList.remove('active');
+      });
+
+      popover.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+
+    function initUnitToggle() {
+      const unitToggle = document.getElementById('unitToggle');
+      unitToggle.addEventListener('click', () => {
+        currentUnit = currentUnit === 'C' ? 'F' : 'C';
+        localStorage.setItem('weather-unit', currentUnit);
+        unitToggle.textContent = `°${currentUnit} / °${currentUnit === 'C' ? 'F' : 'C'}`;
+        updateDisplay();
+      });
+    }
+
+    async function fetchReverseGeo(lat, lon) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+        const data = await res.json();
+        return data.address?.city || data.address?.town || 'Unknown';
+      } catch {
+        return 'Unknown';
+      }
+    }
+
+    async function fetchWeather(lat, lon) {
+      try {
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`
+        );
+        const data = await res.json();
+        return data;
+      } catch (e) {
+        console.error('Weather fetch error:', e);
+        return null;
+      }
+    }
+
+    function updateDisplay() {
+      const content = document.getElementById('content');
+      
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          const [weather, city] = await Promise.all([
+            fetchWeather(latitude, longitude),
+            fetchReverseGeo(latitude, longitude)
+          ]);
+
+          document.getElementById('city').textContent = city;
+
+          if (!weather) {
+            content.innerHTML = '<div class="error">unable to load weather</div>';
+            return;
+          }
+
+          const current = weather.current;
+          const daily = weather.daily;
+          const temp = convertTemp(current.temperature_2m);
+          const condition = getWeatherDescription(current.weather_code);
+          const high = convertTemp(daily.temperature_2m_max[0]);
+          const low = convertTemp(daily.temperature_2m_min[0]);
+          const humidity = current.relative_humidity_2m;
+          const wind = current.wind_speed_10m;
+
+          content.innerHTML = `
+            <div class="temperature">${temp}°</div>
+            <div class="condition">${condition}</div>
+            <div class="details">
+              <div class="detail-item">
+                <div class="detail-label">Humidity</div>
+                <div class="detail-value">${humidity}%</div>
+              </div>
+              <div class="divider"></div>
+              <div class="detail-item">
+                <div class="detail-label">Wind</div>
+                <div class="detail-value">${Math.round(wind)} km/h</div>
+              </div>
+            </div>
+            <div class="high-low">
+              <span>H ${high}°</span>
+              <span>L ${low}°</span>
+            </div>
+          `;
+        },
+        () => {
+          content.innerHTML = '<div class="error">enable location access</div>';
+        }
+      );
+    }
+
+    applyTheme(currentTheme);
+    renderColorGrid();
+    initPopover();
+    initUnitToggle();
+    updateDisplay();
+  </script>
+</body>
+</html>

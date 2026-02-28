@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moon Phase Widget</title>
+  <style>
+    @import url('https://rsms.me/inter/inter.css');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      color-scheme: light dark;
+      
+      /* Default theme */
+      --accent: #b8d4e3;
+      --accent-text: #1a4f6e;
+      --cell-bg: #ddebf1;
+      
+      /* Light mode */
+      --bg: white;
+      --text: #37474f;
+      --muted: #90a4ae;
+      --border: #eceff1;
+      --shadow: #546e7a;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1e;
+        --text: #e0e0e0;
+        --muted: #9e9e9e;
+        --border: #2a2a2a;
+        --shadow: #424242;
+      }
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 14px 0 8px;
+      background: transparent;
+      overflow: hidden;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .menu-btn {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 20px;
+      border-radius: 6px;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .menu-btn:hover {
+      background: var(--cell-bg);
+    }
+
+    .popover {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      margin-top: 8px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .popover.active {
+      display: flex;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 32px);
+      gap: 6px;
+      padding: 8px;
+    }
+
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+      border-color: var(--text);
+    }
+
+    .moon-svg {
+      width: 80px;
+      height: 80px;
+      margin: 20px 0;
+    }
+
+    .phase-name {
+      font-size: 14px;
+      font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      margin: 12px 0 4px 0;
+    }
+
+    .illumination {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .next-event {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div style="position: relative;">
+        <button class="menu-btn" id="menuBtn">···</button>
+        <div class="popover" id="popover">
+          <div class="color-grid" id="colorGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <svg class="moon-svg" viewBox="0 0 100 100" id="moonSvg">
+      <defs>
+        <mask id="moonMask">
+          <circle cx="50" cy="50" r="45" fill="white"/>
+        </mask>
+      </defs>
+      <circle cx="50" cy="50" r="45" fill="var(--cell-bg)" stroke="var(--accent)" stroke-width="0.5"/>
+      <circle id="moonLit" cx="50" cy="50" r="45" fill="var(--accent)" mask="url(#moonMask)"/>
+      <ellipse id="moonShadow" cx="50" cy="50" rx="45" ry="45" fill="var(--shadow)" opacity="0.4" mask="url(#moonMask)"/>
+    </svg>
+
+    <div class="phase-name" id="phaseName">waxing crescent</div>
+    <div class="illumination" id="illumination">25% illuminated</div>
+    <div class="next-event" id="nextEvent">next full moon in 7 days</div>
+  </div>
+
+  <script>
+    const THEMES = {
+      default: { accent: '#b8d4e3', accentText: '#1a4f6e', cellBg: '#ddebf1' },
+      grey: { accent: '#c8cacc', accentText: '#3a3a3a', cellBg: '#ebeced' },
+      brown: { accent: '#cec8c5', accentText: '#5c3d2e', cellBg: '#e9e5e3' },
+      orange: { accent: '#f0ceaa', accentText: '#7a3c08', cellBg: '#faebdd' },
+      yellow: { accent: '#eed9a0', accentText: '#6a4e10', cellBg: '#fbf3db' },
+      green: { accent: '#aacfc9', accentText: '#1a5248', cellBg: '#ddedea' },
+      blue: { accent: '#b8d4e3', accentText: '#1a4f6e', cellBg: '#ddebf1' },
+      purple: { accent: '#cfc4e0', accentText: '#42286e', cellBg: '#eae4f2' },
+      pink: { accent: '#e4bcce', accentText: '#6e1a46', cellBg: '#f4dfeb' },
+      red: { accent: '#f0bcbc', accentText: '#6e1a1a', cellBg: '#fbe4e4' }
+    };
+
+    const SWATCH_COLORS = ['#ddebf1', '#ebeced', '#e9e5e3', '#faebdd', '#fbf3db', '#ddedea', '#ddebf1', '#eae4f2', '#f4dfeb', '#fbe4e4'];
+    const THEME_KEYS = Object.keys(THEMES);
+
+    // Known new moon: January 6, 2000 at 18:14 UTC (JD 2451550.1)
+    const NEW_MOON_JD = 2451550.1;
+    const LUNAR_CYCLE = 29.53058867;
+
+    let currentTheme = localStorage.getItem('moon-theme') || 'default';
+
+    function applyTheme(themeKey) {
+      const theme = THEMES[themeKey];
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      document.documentElement.style.setProperty('--accent-text', theme.accentText);
+      document.documentElement.style.setProperty('--cell-bg', theme.cellBg);
+      currentTheme = themeKey;
+      localStorage.setItem('moon-theme', themeKey);
+    }
+
+    function renderColorGrid() {
+      const grid = document.getElementById('colorGrid');
+      grid.innerHTML = '';
+      THEME_KEYS.forEach((key, index) => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = SWATCH_COLORS[index];
+        swatch.title = key;
+        swatch.addEventListener('click', () => {
+          applyTheme(key);
+          document.getElementById('popover').classList.remove('active');
+        });
+        grid.appendChild(swatch);
+      });
+    }
+
+    function initPopover() {
+      const menuBtn = document.getElementById('menuBtn');
+      const popover = document.getElementById('popover');
+
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        popover.classList.toggle('active');
+      });
+
+      document.addEventListener('click', () => {
+        popover.classList.remove('active');
+      });
+
+      popover.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+
+    function dateToJulianDay(date) {
+      const a = Math.floor((14 - date.getUTCMonth() - 1) / 12);
+      const y = date.getUTCFullYear() + 4800 - a;
+      const m = date.getUTCMonth() + 1 + 12 * a - 3;
+
+      const jdn = date.getUTCDate() + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+      const jd = jdn + (date.getUTCHours() - 12) / 24 + date.getUTCMinutes() / 1440 + date.getUTCSeconds() / 86400;
+      return jd;
+    }
+
+    function calculateMoonPhase(date) {
+      const jd = dateToJulianDay(date);
+      const daysSinceNewMoon = jd - NEW_MOON_JD;
+      const dayInCycle = daysSinceNewMoon % LUNAR_CYCLE;
+      
+      const illumination = Math.round(((1 - Math.cos(2 * Math.PI * dayInCycle / LUNAR_CYCLE)) / 2) * 100);
+      
+      let phaseName = '';
+      if (dayInCycle < 1.85) phaseName = 'new moon';
+      else if (dayInCycle < 7.38) phaseName = 'waxing crescent';
+      else if (dayInCycle < 9.22) phaseName = 'first quarter';
+      else if (dayInCycle < 14.77) phaseName = 'waxing gibbous';
+      else if (dayInCycle < 16.62) phaseName = 'full moon';
+      else if (dayInCycle < 22.15) phaseName = 'waning gibbous';
+      else if (dayInCycle < 24) phaseName = 'last quarter';
+      else phaseName = 'waning crescent';
+
+      return {
+        illumination,
+        phaseName,
+        dayInCycle,
+        daysToFull: dayInCycle < 14.77 ? Math.round(14.77 - dayInCycle) : Math.round(LUNAR_CYCLE - dayInCycle + 14.77),
+        daysToNew: dayInCycle < LUNAR_CYCLE ? Math.round(LUNAR_CYCLE - dayInCycle) : 0
+      };
+    }
+
+    function drawMoon(dayInCycle, illumination) {
+      const litCircle = document.getElementById('moonLit');
+      const shadowEllipse = document.getElementById('moonShadow');
+      
+      const phase = dayInCycle / LUNAR_CYCLE;
+      const radius = 45;
+      
+      // Lit portion increases from 0 to full
+      if (phase < 0.5) {
+        // Waxing: lit portion grows from left to right
+        const offset = radius * (1 - Math.cos(Math.PI * phase * 2));
+        litCircle.setAttribute('cx', 50 - radius + offset);
+        litCircle.setAttribute('rx', offset);
+        litCircle.setAttribute('ry', radius);
+        shadowEllipse.setAttribute('cx', 50);
+        shadowEllipse.setAttribute('rx', radius);
+        shadowEllipse.setAttribute('ry', radius);
+      } else {
+        // Waning: lit portion shrinks from right to left
+        const offset = radius * Math.cos(Math.PI * (phase - 0.5) * 2);
+        litCircle.setAttribute('cx', 50 + offset);
+        litCircle.setAttribute('rx', offset);
+        litCircle.setAttribute('ry', radius);
+        shadowEllipse.setAttribute('cx', 50);
+        shadowEllipse.setAttribute('rx', radius);
+        shadowEllipse.setAttribute('ry', radius);
+      }
+    }
+
+    function updateDisplay() {
+      const now = new Date();
+      const data = calculateMoonPhase(now);
+
+      document.getElementById('phaseName').textContent = data.phaseName;
+      document.getElementById('illumination').textContent = `${data.illumination}% illuminated`;
+      
+      const daysToFull = data.dayInCycle < 14.77 ? Math.round(14.77 - data.dayInCycle) : Math.round(LUNAR_CYCLE - data.dayInCycle + 14.77);
+      const daysToNew = data.dayInCycle < LUNAR_CYCLE ? Math.round(LUNAR_CYCLE - data.dayInCycle) : 0;
+      
+      let nextEvent = '';
+      if (daysToNew === 0 || daysToFull < daysToNew) {
+        nextEvent = `next full moon in ${daysToFull} day${daysToFull !== 1 ? 's' : ''}`;
+      } else {
+        nextEvent = `next new moon in ${daysToNew} day${daysToNew !== 1 ? 's' : ''}`;
+      }
+      
+      document.getElementById('nextEvent').textContent = nextEvent;
+      
+      drawMoon(data.dayInCycle, data.illumination);
+    }
+
+    applyTheme(currentTheme);
+    renderColorGrid();
+    initPopover();
+    updateDisplay();
+  </script>
+</body>
+</html>
