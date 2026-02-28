@@ -28,12 +28,8 @@
       width: 100%;
     }
 
-    /* time-wrap is an inline-flex column so ampm
-       naturally sits right-aligned below the time text */
     .time-wrap {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: flex-end;
+      display: inline-block;
     }
 
     .time {
@@ -46,23 +42,29 @@
       white-space: nowrap;
     }
 
-    .time .seconds {
-      font-size: 0.45em;
-      font-weight: 300;
-      color: #aaa;
+    /* seconds + ampm share one superscript column */
+    .time .sup-col {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
       vertical-align: super;
       margin-left: 3px;
+      font-size: 0.45em;
+      line-height: 1.15;
       letter-spacing: 0;
     }
 
-    .ampm {
-      font-size: clamp(8px, 1.4vw, 11px);
+    .time .seconds {
       font-weight: 300;
-      letter-spacing: 0.2em;
+      color: #aaa;
+    }
+
+    .ampm {
+      font-size: 0.7em;
+      font-weight: 300;
       color: #ccc;
       text-transform: uppercase;
       display: none;
-      margin-top: 1px;
     }
 
     .ampm.visible { display: block; }
@@ -187,8 +189,9 @@
 <body>
   <div class="widget">
     <div class="time-wrap">
-      <div class="time" id="time">00:00<span class="seconds">00</span></div>
-      <div class="ampm" id="ampm"></div>
+      <div class="time" id="time">
+        00:00<span class="sup-col"><span class="seconds" id="seconds">00</span><span class="ampm" id="ampm"></span></span>
+      </div>
     </div>
     <div class="divider"></div>
     <div class="date" id="date">Saturday, January 1</div>
@@ -243,15 +246,10 @@
       }
 
       document.getElementById('time').innerHTML =
-        `${pad(displayH)}:${pad(m)}<span class="seconds">${pad(s)}</span>`;
-
-      const ampmEl = document.getElementById('ampm');
-      ampmEl.textContent = ampm;
-      ampmEl.classList.toggle('visible', fmt === '12');
+        `${pad(displayH)}:${pad(m)}<span class="sup-col"><span class="seconds">${pad(s)}</span><span class="ampm${fmt === '12' ? ' visible' : ''}" id="ampm">${ampm}</span></span>`;
 
       document.getElementById('date').textContent =
         `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
-
       document.getElementById('greeting').textContent = getGreeting(h24);
     }
 
