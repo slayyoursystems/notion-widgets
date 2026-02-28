@@ -12,11 +12,10 @@
       font-family: 'Inter', sans-serif;
       background: transparent;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding: 24px 8px 0;  /* ← change first number to adjust top margin */
       overflow: hidden;
-      padding: 20px 8px;
     }
 
     .widget {
@@ -27,7 +26,13 @@
       gap: 1px;
       user-select: none;
       width: 100%;
-      padding-top: 16px;
+    }
+
+    /* time + ampm sit in a relative wrapper so ampm can
+       align to the right edge (under the seconds) */
+    .time-wrap {
+      position: relative;
+      display: inline-block;
     }
 
     .time {
@@ -50,12 +55,15 @@
     }
 
     .ampm {
-      font-size: clamp(9px, 1.6vw, 12px);
+      position: absolute;
+      right: 0;
+      bottom: -14px;
+      font-size: clamp(8px, 1.4vw, 11px);
       font-weight: 300;
       letter-spacing: 0.2em;
       color: #ccc;
       text-transform: uppercase;
-      display: none; /* shown only in 12h mode */
+      display: none;
     }
 
     .ampm.visible { display: block; }
@@ -64,7 +72,7 @@
       width: 20px;
       height: 1px;
       background: #e0e0e0;
-      margin: 2px auto;
+      margin: 10px auto 2px; /* extra top margin accounts for ampm space */
     }
 
     .date {
@@ -86,18 +94,18 @@
     /* ── ... menu button ── */
     .menu-wrap {
       position: relative;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     .menu-btn {
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 13px;
       letter-spacing: 0.05em;
       color: #ddd;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 8px 20px;   /* bigger hit target */
+      border-radius: 6px;
       font-family: 'Inter', sans-serif;
       transition: color 0.15s, background 0.15s;
     }
@@ -107,7 +115,7 @@
     .popover {
       display: none;
       position: absolute;
-      bottom: calc(100% + 6px);
+      bottom: calc(100% + 4px);
       left: 50%;
       transform: translateX(-50%);
       background: #fff;
@@ -179,8 +187,10 @@
 </head>
 <body>
   <div class="widget">
-    <div class="time" id="time">00:00<span class="seconds">00</span></div>
-    <div class="ampm" id="ampm"></div>
+    <div class="time-wrap">
+      <div class="time" id="time">00:00<span class="seconds">00</span></div>
+      <div class="ampm" id="ampm"></div>
+    </div>
     <div class="divider"></div>
     <div class="date" id="date">Saturday, January 1</div>
     <div class="greeting" id="greeting">good morning</div>
@@ -221,11 +231,10 @@
     }
 
     function tick() {
-      const now = new Date();
-      const h24 = now.getHours();
-      const m   = now.getMinutes();
-      const s   = now.getSeconds();
-
+      const now  = new Date();
+      const h24  = now.getHours();
+      const m    = now.getMinutes();
+      const s    = now.getSeconds();
       let displayH = h24;
       let ampm = '';
 
@@ -247,7 +256,6 @@
       document.getElementById('greeting').textContent = getGreeting(h24);
     }
 
-    // Popover toggle
     const menuBtn = document.getElementById('menuBtn');
     const popover = document.getElementById('popover');
     menuBtn.addEventListener('click', (e) => {
@@ -257,7 +265,6 @@
     document.addEventListener('click', () => popover.classList.remove('open'));
     popover.addEventListener('click', (e) => e.stopPropagation());
 
-    // Init
     setFormat(fmt);
     tick();
     setInterval(tick, 1000);
