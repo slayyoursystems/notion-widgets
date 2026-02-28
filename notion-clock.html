@@ -6,11 +6,7 @@
   <title>Clock Widget</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -26,8 +22,11 @@
       text-align: center;
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 2px;
       user-select: none;
+      width: 60%;
+      min-width: 160px;
     }
 
     .time {
@@ -37,6 +36,7 @@
       color: #1a1a1a;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
     .time .seconds {
@@ -48,12 +48,14 @@
       letter-spacing: 0;
     }
 
-    .date {
-      font-size: clamp(10px, 2vw, 12px);
+    .ampm {
+      font-size: clamp(8px, 1.4vw, 10px);
       font-weight: 300;
-      letter-spacing: 0.18em;
-      color: #999;
+      letter-spacing: 0.2em;
+      color: #ccc;
       text-transform: uppercase;
+      height: 14px; /* reserve space so layout doesn't jump */
+      line-height: 14px;
     }
 
     .divider {
@@ -61,6 +63,14 @@
       height: 1px;
       background: #e0e0e0;
       margin: 3px auto;
+    }
+
+    .date {
+      font-size: clamp(10px, 2vw, 12px);
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      color: #999;
+      text-transform: uppercase;
     }
 
     .greeting {
@@ -71,69 +81,180 @@
       text-transform: uppercase;
     }
 
+    /* ── ... menu button ── */
+    .menu-wrap {
+      position: relative;
+      margin-top: 6px;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: #ddd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .menu-btn:hover { color: #999; background: #f5f5f5; }
+
+    .popover {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #ebebeb;
+      border-radius: 8px;
+      padding: 8px 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    .popover.open { display: block; }
+
+    .popover-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 7px;
+    }
+
+    .toggle-row {
+      display: flex;
+      gap: 5px;
+    }
+
+    .fmt-btn {
+      flex: 1;
+      background: #f5f5f5;
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .fmt-btn:hover { background: #eee; }
+    .fmt-btn.active {
+      background: #fff;
+      border-color: #ccc;
+      color: #1a1a1a;
+    }
+
     /* ── Dark mode ── */
     @media (prefers-color-scheme: dark) {
-      body {
-        background: transparent;
+      .time { color: #f0f0f0; }
+      .time .seconds { color: #555; }
+      .ampm { color: #444; }
+      .date { color: #666; }
+      .divider { background: #333; }
+      .greeting { color: #444; }
+      .menu-btn { color: #333; }
+      .menu-btn:hover { color: #888; background: #222; }
+      .popover {
+        background: #1e1e1e;
+        border-color: #333;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
       }
-      .time {
-        color: #f0f0f0;
-      }
-      .time .seconds {
-        color: #555;
-      }
-      .date {
-        color: #666;
-      }
-      .divider {
-        background: #333;
-      }
-      .greeting {
-        color: #444;
-      }
+      .fmt-btn { background: #2a2a2a; color: #666; }
+      .fmt-btn:hover { background: #333; }
+      .fmt-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
     }
   </style>
 </head>
 <body>
   <div class="widget">
-    <div class="time" id="time">
-      00:00<span class="seconds" id="seconds">00</span>
-    </div>
+    <div class="time" id="time">00:00<span class="seconds">00</span></div>
+    <div class="ampm" id="ampm"></div>
     <div class="divider"></div>
     <div class="date" id="date">Saturday, January 1</div>
     <div class="greeting" id="greeting">good morning</div>
+
+    <div class="menu-wrap">
+      <button class="menu-btn" id="menuBtn">···</button>
+      <div class="popover" id="popover">
+        <div class="popover-label">Time format</div>
+        <div class="toggle-row">
+          <button class="fmt-btn" id="btn12" onclick="setFormat('12')">12h</button>
+          <button class="fmt-btn" id="btn24" onclick="setFormat('24')">24h</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    function pad(n) {
-      return String(n).padStart(2, '0');
-    }
-
-    function getGreeting(hour) {
-      if (hour < 12) return 'good morning';
-      if (hour < 17) return 'good afternoon';
-      return 'good evening';
-    }
-
-    const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const MONTHS = ['January','February','March','April','May','June',
                     'July','August','September','October','November','December'];
 
+    let fmt = localStorage.getItem('clock-fmt') || '24';
+
+    function setFormat(f) {
+      fmt = f;
+      localStorage.setItem('clock-fmt', fmt);
+      document.getElementById('btn12').classList.toggle('active', fmt === '12');
+      document.getElementById('btn24').classList.toggle('active', fmt === '24');
+      tick();
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function getGreeting(h) {
+      if (h < 12) return 'good morning';
+      if (h < 17) return 'good afternoon';
+      return 'good evening';
+    }
+
     function tick() {
       const now = new Date();
-      const h = now.getHours();
-      const m = now.getMinutes();
-      const s = now.getSeconds();
+      const h24 = now.getHours();
+      const m   = now.getMinutes();
+      const s   = now.getSeconds();
+
+      let displayH = h24;
+      let ampm = '';
+
+      if (fmt === '12') {
+        ampm = h24 < 12 ? 'am' : 'pm';
+        displayH = h24 % 12 || 12;
+      }
 
       document.getElementById('time').innerHTML =
-        `${pad(h)}:${pad(m)}<span class="seconds">${pad(s)}</span>`;
+        `${pad(displayH)}:${pad(m)}<span class="seconds">${pad(s)}</span>`;
+
+      document.getElementById('ampm').textContent = ampm;
 
       document.getElementById('date').textContent =
         `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
 
-      document.getElementById('greeting').textContent = getGreeting(h);
+      document.getElementById('greeting').textContent = getGreeting(h24);
     }
 
+    // Popover toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const popover = document.getElementById('popover');
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      popover.classList.toggle('open');
+    });
+    document.addEventListener('click', () => popover.classList.remove('open'));
+    popover.addEventListener('click', (e) => e.stopPropagation());
+
+    // Init
+    setFormat(fmt);
     tick();
     setInterval(tick, 1000);
   </script>

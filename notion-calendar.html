@@ -55,6 +55,7 @@
       align-items: center;
       justify-content: space-between;
       margin-top: 8px;
+      padding: 0 18px;
     }
 
     .nav-btn, .menu-btn {
@@ -179,56 +180,56 @@
       font-weight: 400;
     }
 
-    /* ── Pastel Notion themes ── */
+    /* ── Notion exact background colors (light mode) ── */
     .theme-default {
-      --accent:      #c4dff5;
-      --accent-text: #2a6496;
-      --cell-bg:     #eef5fb;
+      --accent:      #b8d4e3;
+      --accent-text: #1a4f6e;
+      --cell-bg:     #ddebf1;
     }
     .theme-grey {
-      --accent:      #d9d9d7;
-      --accent-text: #4a4a4a;
-      --cell-bg:     #f1f1ef;
+      --accent:      #c8cacc;
+      --accent-text: #3a3a3a;
+      --cell-bg:     #ebeced;
     }
     .theme-brown {
-      --accent:      #e8d5cc;
-      --accent-text: #6b3a2a;
-      --cell-bg:     #f5efec;
+      --accent:      #cec8c5;
+      --accent-text: #5c3d2e;
+      --cell-bg:     #e9e5e3;
     }
     .theme-orange {
-      --accent:      #fad9b8;
-      --accent-text: #8f4a0a;
-      --cell-bg:     #fdf0e4;
+      --accent:      #f0ceaa;
+      --accent-text: #7a3c08;
+      --cell-bg:     #faebdd;
     }
     .theme-yellow {
-      --accent:      #f9e8b8;
-      --accent-text: #7a5a10;
-      --cell-bg:     #fdf6df;
+      --accent:      #eed9a0;
+      --accent-text: #6a4e10;
+      --cell-bg:     #fbf3db;
     }
     .theme-green {
-      --accent:      #b8dfd9;
-      --accent-text: #1a5e54;
-      --cell-bg:     #e4f3f1;
+      --accent:      #aacfc9;
+      --accent-text: #1a5248;
+      --cell-bg:     #ddedea;
     }
     .theme-blue {
-      --accent:      #b8d4e8;
-      --accent-text: #1a4f72;
-      --cell-bg:     #e4eff7;
+      --accent:      #b8d4e3;
+      --accent-text: #1a4f6e;
+      --cell-bg:     #ddebf1;
     }
     .theme-purple {
-      --accent:      #d3c4eb;
-      --accent-text: #4a2a7a;
-      --cell-bg:     #ede7f6;
+      --accent:      #cfc4e0;
+      --accent-text: #42286e;
+      --cell-bg:     #eae4f2;
     }
     .theme-pink {
-      --accent:      #f0c4db;
-      --accent-text: #7a1a50;
-      --cell-bg:     #f9e4f0;
+      --accent:      #e4bcce;
+      --accent-text: #6e1a46;
+      --cell-bg:     #f4dfeb;
     }
     .theme-red {
-      --accent:      #f5c4c4;
-      --accent-text: #7a1a1a;
-      --cell-bg:     #fce8e8;
+      --accent:      #f0bcbc;
+      --accent-text: #6e1a1a;
+      --cell-bg:     #fbe4e4;
     }
 
     /* ── Dark mode ── */
@@ -298,16 +299,16 @@
                   'July','August','September','October','November','December'];
 
   const THEMES = [
-    { name: 'default', color: '#c4dff5', label: 'Blue'    },
-    { name: 'grey',    color: '#d9d9d7', label: 'Grey'    },
-    { name: 'brown',   color: '#e8d5cc', label: 'Brown'   },
-    { name: 'orange',  color: '#fad9b8', label: 'Orange'  },
-    { name: 'yellow',  color: '#f9e8b8', label: 'Yellow'  },
-    { name: 'green',   color: '#b8dfd9', label: 'Green'   },
-    { name: 'blue',    color: '#b8d4e8', label: 'Blue'    },
-    { name: 'purple',  color: '#d3c4eb', label: 'Purple'  },
-    { name: 'pink',    color: '#f0c4db', label: 'Pink'    },
-    { name: 'red',     color: '#f5c4c4', label: 'Red'     },
+    { name: 'default', color: '#ddebf1', label: 'Default' },
+    { name: 'grey',    color: '#ebeced', label: 'Grey'    },
+    { name: 'brown',   color: '#e9e5e3', label: 'Brown'   },
+    { name: 'orange',  color: '#faebdd', label: 'Orange'  },
+    { name: 'yellow',  color: '#fbf3db', label: 'Yellow'  },
+    { name: 'green',   color: '#ddedea', label: 'Green'   },
+    { name: 'blue',    color: '#ddebf1', label: 'Blue'    },
+    { name: 'purple',  color: '#eae4f2', label: 'Purple'  },
+    { name: 'pink',    color: '#f4dfeb', label: 'Pink'    },
+    { name: 'red',     color: '#fbe4e4', label: 'Red'     },
   ];
 
   const widget   = document.getElementById('widget');
