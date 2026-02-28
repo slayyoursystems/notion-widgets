@@ -24,7 +24,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 1px;
       user-select: none;
       width: 100%;
     }
@@ -54,15 +54,16 @@
       letter-spacing: 0.2em;
       color: #ccc;
       text-transform: uppercase;
-      height: 14px; /* reserve space so layout doesn't jump */
-      line-height: 14px;
+      display: none; /* shown only in 12h mode */
     }
+
+    .ampm.visible { display: block; }
 
     .divider {
       width: 20px;
       height: 1px;
       background: #e0e0e0;
-      margin: 3px auto;
+      margin: 2px auto;
     }
 
     .date {
@@ -235,7 +236,9 @@
       document.getElementById('time').innerHTML =
         `${pad(displayH)}:${pad(m)}<span class="seconds">${pad(s)}</span>`;
 
-      document.getElementById('ampm').textContent = ampm;
+      const ampmEl = document.getElementById('ampm');
+      ampmEl.textContent = ampm;
+      ampmEl.classList.toggle('visible', fmt === '12');
 
       document.getElementById('date').textContent =
         `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
