@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { background: transparent; }
     :root { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; --text:#1a1a1a; --subtext:#bbb; --border:#ebebeb; }
     body { font-family:'Inter',sans-serif; background:transparent; display:flex; flex-direction:column; height:100vh; padding:24px 14px 0 14px; overflow:hidden; }
     .header { font-size:12px; font-weight:300; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); text-align:center; margin-bottom:12px; flex-shrink:0; }
@@ -38,11 +39,22 @@
     .theme-purple  { --accent:#cfc4e0; --accent-text:#42286e; --cell-bg:#eae4f2; }
     .theme-pink    { --accent:#e4bcce; --accent-text:#6e1a46; --cell-bg:#f4dfeb; }
     .theme-red     { --accent:#f0bcbc; --accent-text:#6e1a1a; --cell-bg:#fbe4e4; }
+    .opt-row { display:flex; gap:5px; }
+    .opt-btn { flex:1; background:#f5f5f5; border:1.5px solid transparent; border-radius:5px; padding:4px 8px; font-family:'Inter',sans-serif; font-size:11px; font-weight:300; color:#999; cursor:pointer; transition:all 0.12s; }
+    .opt-btn:hover { background:#eee; }
+    .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
+    body.bg-on     { background:#fff; border-radius:4px; }
+    body.border-on { border:1px solid rgba(55, 53, 47, 0.09); border-radius:4px; }
     @media (prefers-color-scheme:dark) {
       :root { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a; }
       .popover { background:#1e1e1e; border-color:#333; }
       .popover-divider { background:#333; }
       .swatch.active { border-color:#ccc; }
+      .opt-btn { background:#2a2a2a; color:#666; }
+      .opt-btn:hover { background:#333; }
+      .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
+      body.bg-on { background:#191919; }
+      body.border-on { border-color:rgba(255,255,255,0.082); }
       .theme-default .pad-wrap { background:#1a2530; }
       .theme-grey    .pad-wrap { background:#202020; }
       .theme-brown   .pad-wrap { background:#251c18; }
@@ -68,6 +80,18 @@
         <div class="popover-label">Color</div>
         <div class="swatch-grid" id="swatchGrid"></div>
         <div class="popover-divider"></div>
+        <div class="popover-label">Background</div>
+        <div class="opt-row">
+          <button class="opt-btn" id="bgOff">off</button>
+          <button class="opt-btn" id="bgOn">on</button>
+        </div>
+        <div class="popover-divider"></div>
+        <div class="popover-label">Border</div>
+        <div class="opt-row">
+          <button class="opt-btn" id="borderOff">off</button>
+          <button class="opt-btn" id="borderOn">on</button>
+        </div>
+        <div class="popover-divider"></div>
         <button class="clear-btn" id="clearBtn">clear note</button>
       </div>
     </div>
@@ -89,6 +113,16 @@
   menuBtn.addEventListener('click',e=>{e.stopPropagation();popover.classList.toggle('open');});
   document.addEventListener('click',()=>popover.classList.remove('open'));
   popover.addEventListener('click',e=>e.stopPropagation());
+  let bgOn=localStorage.getItem('np-bg')==='on';
+  function setBg(on){bgOn=on;localStorage.setItem('np-bg',on?'on':'off');document.body.classList.toggle('bg-on',on);document.getElementById('bgOff').classList.toggle('active',!on);document.getElementById('bgOn').classList.toggle('active',on);}
+  document.getElementById('bgOff').addEventListener('click',()=>setBg(false));
+  document.getElementById('bgOn').addEventListener('click',()=>setBg(true));
+  setBg(bgOn);
+  let borderOn=localStorage.getItem('np-border')==='on';
+  function setBorder(on){borderOn=on;localStorage.setItem('np-border',on?'on':'off');document.body.classList.toggle('border-on',on);document.getElementById('borderOff').classList.toggle('active',!on);document.getElementById('borderOn').classList.toggle('active',on);}
+  document.getElementById('borderOff').addEventListener('click',()=>setBorder(false));
+  document.getElementById('borderOn').addEventListener('click',()=>setBorder(true));
+  setBorder(borderOn);
 </script>
 </body>
 </html>

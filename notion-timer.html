@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timer Widget</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { background: transparent; }
+
+    :root {
+      --accent:      #b8d4e3;
+      --accent-text: #1a4f6e;
+      --cell-bg:     #ddebf1;
+      --text:        #1a1a1a;
+      --subtext:     #aaa;
+      --border:      #ebebeb;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 14px 0;
+      overflow: hidden;
+    }
+
+    .widget {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      user-select: none;
+    }
+
+    /* ── Countdown display ── */
+    .time-wrap {
+      display: inline-block;
+      text-align: center;
+    }
+
+    .countdown {
+      font-size: clamp(32px, 22vw, 120px);
+      font-weight: 300;
+      letter-spacing: -1px;
+      color: var(--text);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      transition: color 0.3s;
+    }
+
+    .countdown.done {
+      color: var(--accent-text);
+    }
+
+    .countdown.running {
+      color: var(--text);
+    }
+
+    /* ── Divider ── */
+    .divider {
+      width: 20px;
+      height: 1px;
+      background: #e0e0e0;
+      margin: 4px auto 2px;
+    }
+
+    /* ── Label below divider ── */
+    .label {
+      font-size: clamp(9px, 4.5vw, 17px);
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: #bbb;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* ── Preset buttons ── */
+    .presets {
+      display: flex;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .preset-btn {
+      background: var(--cell-bg);
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(9px, 3.5vw, 13px);
+      font-weight: 300;
+      color: var(--subtext);
+      cursor: pointer;
+      transition: all 0.12s;
+      letter-spacing: 0.04em;
+    }
+
+    .preset-btn:hover {
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+
+    .preset-btn.active {
+      background: var(--cell-bg);
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    /* ── Custom input row ── */
+    .custom-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .time-input {
+      width: clamp(36px, 12vw, 48px);
+      background: var(--cell-bg);
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 4px 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(10px, 3.5vw, 13px);
+      font-weight: 300;
+      color: var(--text);
+      text-align: center;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    .time-input::-webkit-inner-spin-button,
+    .time-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .time-input:focus {
+      border-color: var(--accent);
+    }
+
+    .input-sep {
+      font-size: clamp(10px, 3.5vw, 14px);
+      font-weight: 300;
+      color: var(--subtext);
+    }
+
+    .set-btn {
+      background: var(--cell-bg);
+      border: 1.5px solid var(--accent);
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(9px, 3.2vw, 12px);
+      font-weight: 300;
+      color: var(--accent-text);
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: opacity 0.15s;
+      margin-left: 2px;
+    }
+
+    .set-btn:hover { opacity: 0.75; }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .ctrl-btn {
+      background: var(--cell-bg);
+      border: none;
+      border-radius: 5px;
+      padding: 6px 18px;
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(9px, 3.5vw, 13px);
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-text);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .ctrl-btn:hover { opacity: 0.7; }
+
+    .ctrl-btn.secondary {
+      color: var(--subtext);
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      width: 100%;
+      max-width: clamp(120px, 80vw, 240px);
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 1px;
+      width: 100%;
+      transition: width 0.5s linear, background 0.3s;
+    }
+
+    .progress-bar.done {
+      background: var(--accent-text);
+    }
+
+    /* ── Footer / menu ── */
+    .menu-wrap {
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      color: #ddd;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .menu-btn:hover { color: #999; background: #f5f5f5; }
+
+    .popover {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #ebebeb;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+      white-space: nowrap;
+      width: 148px;
+    }
+
+    .popover.open { display: block; }
+
+    .popover-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 8px;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: transform 0.12s;
+    }
+
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.active { border-color: #666; }
+
+    .popover-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0;
+    }
+
+    .sound-row {
+      display: flex;
+      gap: 5px;
+    }
+
+    .sound-btn {
+      flex: 1;
+      background: #f5f5f5;
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 4px 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.12s;
+      text-align: center;
+    }
+
+    .sound-btn:hover { background: #eee; }
+    .sound-btn.active {
+      background: #fff;
+      border-color: #ccc;
+      color: #1a1a1a;
+    }
+
+    /* ── Themes ── */
+    .theme-default { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ddebf1; }
+    .theme-grey    { --accent: #c8cacc; --accent-text: #3a3a3a; --cell-bg: #ebeced; }
+    .theme-brown   { --accent: #cec8c5; --accent-text: #5c3d2e; --cell-bg: #e9e5e3; }
+    .theme-orange  { --accent: #f0ceaa; --accent-text: #7a3c08; --cell-bg: #faebdd; }
+    .theme-yellow  { --accent: #eed9a0; --accent-text: #6a4e10; --cell-bg: #fbf3db; }
+    .theme-green   { --accent: #aacfc9; --accent-text: #1a5248; --cell-bg: #ddedea; }
+    .theme-blue    { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ddebf1; }
+    .theme-purple  { --accent: #cfc4e0; --accent-text: #42286e; --cell-bg: #eae4f2; }
+    .theme-pink    { --accent: #e4bcce; --accent-text: #6e1a46; --cell-bg: #f4dfeb; }
+    .theme-red     { --accent: #f0bcbc; --accent-text: #6e1a1a; --cell-bg: #fbe4e4; }
+
+    .opt-row { display: flex; gap: 5px; }
+    .opt-btn { flex:1; background:#f5f5f5; border:1.5px solid transparent; border-radius:5px; padding:4px 8px; font-family:'Inter',sans-serif; font-size:11px; font-weight:300; color:#999; cursor:pointer; transition:all 0.12s; }
+    .opt-btn:hover { background:#eee; }
+    .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
+    body.bg-on     { background: #fff; border-radius: 4px; }
+    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 4px; }
+
+    /* ── Dark mode ── */
+    @media (prefers-color-scheme: dark) {
+      :root { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a; }
+      .countdown { color: #f0f0f0; }
+      .countdown.done { color: var(--accent); }
+      .menu-btn { color: #333; }
+      .menu-btn:hover { color: #888; background: #222; }
+      .popover { background: #1e1e1e; border-color: #333; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+      .swatch.active { border-color: #ccc; }
+      .sound-btn { background: #2a2a2a; color: #666; }
+      .sound-btn:hover { background: #333; }
+      .sound-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
+      .divider { background: #333; }
+      .opt-btn { background:#2a2a2a; color:#666; }
+      .opt-btn:hover { background:#333; }
+      .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
+      body.bg-on { background: #191919; }
+      body.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    }
+  </style>
+</head>
+<body>
+<div class="widget theme-default" id="widget">
+
+  <div class="time-wrap">
+    <div class="countdown" id="countdown">25:00</div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="label" id="label">timer</div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="presets">
+    <button class="preset-btn active" data-min="5">5m</button>
+    <button class="preset-btn" data-min="10">10m</button>
+    <button class="preset-btn" data-min="25">25m</button>
+    <button class="preset-btn" data-min="45">45m</button>
+    <button class="preset-btn" data-min="60">60m</button>
+  </div>
+
+  <div class="custom-row">
+    <input class="time-input" type="number" id="inputMin" min="0" max="99" value="5" />
+    <span class="input-sep">:</span>
+    <input class="time-input" type="number" id="inputSec" min="0" max="59" value="00" />
+    <button class="set-btn" id="setBtn">set</button>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="startBtn">start</button>
+    <button class="ctrl-btn secondary" id="resetBtn">reset</button>
+  </div>
+
+  <div class="menu-wrap">
+    <button class="menu-btn" id="menuBtn">···</button>
+    <div class="popover" id="popover">
+      <div class="popover-label">Color</div>
+      <div class="swatch-grid" id="swatchGrid"></div>
+      <div class="popover-divider"></div>
+      <div class="popover-label">Sound</div>
+      <div class="sound-row">
+        <button class="sound-btn active" data-sound="bell" id="soundBell">bell</button>
+        <button class="sound-btn" data-sound="beep" id="soundBeep">beep</button>
+        <button class="sound-btn" data-sound="soft" id="soundSoft">soft</button>
+      </div>
+      <div class="popover-divider"></div>
+      <div class="popover-label">Background</div>
+      <div class="opt-row">
+        <button class="opt-btn" id="bgOff">off</button>
+        <button class="opt-btn" id="bgOn">on</button>
+      </div>
+      <div class="popover-divider"></div>
+      <div class="popover-label">Border</div>
+      <div class="opt-row">
+        <button class="opt-btn" id="borderOff">off</button>
+        <button class="opt-btn" id="borderOn">on</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const THEMES = [
+    { name:'default', color:'#ddebf1' }, { name:'grey',   color:'#ebeced' },
+    { name:'brown',   color:'#e9e5e3' }, { name:'orange', color:'#faebdd' },
+    { name:'yellow',  color:'#fbf3db' }, { name:'green',  color:'#ddedea' },
+    { name:'blue',    color:'#ddebf1' }, { name:'purple', color:'#eae4f2' },
+    { name:'pink',    color:'#f4dfeb' }, { name:'red',    color:'#fbe4e4' },
+  ];
+
+  const widget     = document.getElementById('widget');
+  const countdown  = document.getElementById('countdown');
+  const labelEl    = document.getElementById('label');
+  const progressBar= document.getElementById('progressBar');
+  const startBtn   = document.getElementById('startBtn');
+  const resetBtn   = document.getElementById('resetBtn');
+  const menuBtn    = document.getElementById('menuBtn');
+  const popover    = document.getElementById('popover');
+
+  let activeTheme  = localStorage.getItem('tmr-theme') || 'default';
+  let soundType    = localStorage.getItem('tmr-sound') || 'bell';
+  let totalSeconds = 5 * 60;   // default: 5 minutes
+  let remaining    = totalSeconds;
+  let intervalId   = null;
+  let running      = false;
+
+  // Apply saved theme
+  widget.classList.add('theme-' + activeTheme);
+
+  // ── Sound synthesis ──
+  function playSound(type) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      if (type === 'bell') {
+        // Warm bell: two overlapping sine tones that decay
+        [523.25, 659.25, 783.99].forEach((freq, i) => {
+          const osc  = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(i === 0 ? 0.35 : 0.18, ctx.currentTime + i * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
+          osc.start(ctx.currentTime + i * 0.04);
+          osc.stop(ctx.currentTime + 2.5);
+        });
+
+      } else if (type === 'beep') {
+        // Three clean beeps
+        [0, 0.22, 0.44].forEach(offset => {
+          const osc  = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'square';
+          osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.0, ctx.currentTime + offset);
+          gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + offset + 0.01);
+          gain.gain.linearRampToValueAtTime(0.0,  ctx.currentTime + offset + 0.15);
+          osc.start(ctx.currentTime + offset);
+          osc.stop(ctx.currentTime + offset + 0.2);
+        });
+
+      } else if (type === 'soft') {
+        // Gentle rising chime
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 1.8);
+      }
+    } catch(e) {
+      // AudioContext blocked (e.g. no user interaction yet) — silent fail
+    }
+  }
+
+  // ── Format helpers ──
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatTime(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${pad(m)}:${pad(s)}`;
+  }
+
+  function updateDisplay() {
+    countdown.textContent = formatTime(remaining);
+    const pct = totalSeconds > 0 ? (remaining / totalSeconds) * 100 : 100;
+    progressBar.style.width = pct + '%';
+  }
+
+  // ── Timer logic ──
+  function tick() {
+    if (remaining <= 0) {
+      clearInterval(intervalId);
+      intervalId = null;
+      running = false;
+      remaining = 0;
+      countdown.classList.add('done');
+      countdown.classList.remove('running');
+      progressBar.classList.add('done');
+      progressBar.style.width = '0%';
+      labelEl.textContent = 'done!';
+      startBtn.textContent = 'start';
+      playSound(soundType);
+      return;
+    }
+    remaining--;
+    updateDisplay();
+    if (remaining <= 10) {
+      countdown.classList.add('done');
+    }
+  }
+
+  function startPause() {
+    if (running) {
+      // Pause
+      clearInterval(intervalId);
+      intervalId = null;
+      running = false;
+      startBtn.textContent = 'resume';
+    } else {
+      // Start / resume
+      if (remaining <= 0) return;
+      countdown.classList.remove('done');
+      countdown.classList.add('running');
+      progressBar.classList.remove('done');
+      labelEl.textContent = 'timer';
+      running = true;
+      startBtn.textContent = 'pause';
+      intervalId = setInterval(tick, 1000);
+    }
+  }
+
+  function reset() {
+    clearInterval(intervalId);
+    intervalId = null;
+    running = false;
+    remaining = totalSeconds;
+    countdown.classList.remove('done', 'running');
+    progressBar.classList.remove('done');
+    progressBar.style.width = '100%';
+    labelEl.textContent = 'timer';
+    startBtn.textContent = 'start';
+    updateDisplay();
+  }
+
+  function setTimer(minutes, seconds) {
+    const total = (minutes * 60) + seconds;
+    if (total <= 0) return;
+    clearInterval(intervalId);
+    intervalId = null;
+    running = false;
+    totalSeconds = total;
+    remaining = total;
+    countdown.classList.remove('done', 'running');
+    progressBar.classList.remove('done');
+    progressBar.style.width = '100%';
+    labelEl.textContent = 'timer';
+    startBtn.textContent = 'start';
+    updateDisplay();
+  }
+
+  startBtn.addEventListener('click', startPause);
+  resetBtn.addEventListener('click', reset);
+
+  // ── Preset buttons ──
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mins = parseInt(btn.dataset.min);
+      document.getElementById('inputMin').value = mins;
+      document.getElementById('inputSec').value = '00';
+      setTimer(mins, 0);
+    });
+  });
+
+  // ── Custom set ──
+  document.getElementById('setBtn').addEventListener('click', () => {
+    const mins = Math.min(99, Math.max(0, parseInt(document.getElementById('inputMin').value) || 0));
+    const secs = Math.min(59, Math.max(0, parseInt(document.getElementById('inputSec').value) || 0));
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    setTimer(mins, secs);
+  });
+
+  // Enter key on inputs triggers set
+  ['inputMin','inputSec'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('setBtn').click();
+    });
+  });
+
+  // ── Sound buttons ──
+  document.querySelectorAll('.sound-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      soundType = btn.dataset.sound;
+      localStorage.setItem('tmr-sound', soundType);
+      playSound(soundType);  // preview
+    });
+  });
+
+  // Restore saved sound selection
+  document.querySelectorAll('.sound-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sound === soundType);
+  });
+
+  // ── Swatches ──
+  THEMES.forEach(t => {
+    const dot = document.createElement('div');
+    dot.className = 'swatch' + (t.name === activeTheme ? ' active' : '');
+    dot.style.background = t.color;
+    dot.addEventListener('click', () => {
+      widget.classList.remove('theme-' + activeTheme);
+      activeTheme = t.name;
+      widget.classList.add('theme-' + activeTheme);
+      localStorage.setItem('tmr-theme', activeTheme);
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      dot.classList.add('active');
+      popover.classList.remove('open');
+    });
+    document.getElementById('swatchGrid').appendChild(dot);
+  });
+
+  // ── Popover ──
+  menuBtn.addEventListener('click', e => { e.stopPropagation(); popover.classList.toggle('open'); });
+  document.addEventListener('click', () => popover.classList.remove('open'));
+  popover.addEventListener('click', e => e.stopPropagation());
+
+  // Background toggle
+  let bgOn = localStorage.getItem('tmr-bg') === 'on';
+  function setBg(on) { bgOn = on; localStorage.setItem('tmr-bg', on ? 'on' : 'off'); document.body.classList.toggle('bg-on', on); document.getElementById('bgOff').classList.toggle('active', !on); document.getElementById('bgOn').classList.toggle('active', on); }
+  document.getElementById('bgOff').addEventListener('click', () => setBg(false));
+  document.getElementById('bgOn').addEventListener('click', () => setBg(true));
+  setBg(bgOn);
+
+  // Border toggle
+  let borderOn = localStorage.getItem('tmr-border') === 'on';
+  function setBorder(on) { borderOn = on; localStorage.setItem('tmr-border', on ? 'on' : 'off'); document.body.classList.toggle('border-on', on); document.getElementById('borderOff').classList.toggle('active', !on); document.getElementById('borderOn').classList.toggle('active', on); }
+  document.getElementById('borderOff').addEventListener('click', () => setBorder(false));
+  document.getElementById('borderOn').addEventListener('click', () => setBorder(true));
+  setBorder(borderOn);
+
+  // Init display
+  updateDisplay();
+</script>
+</body>
+</html>
