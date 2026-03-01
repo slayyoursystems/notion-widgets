@@ -13,7 +13,7 @@
     :root {
       --accent:      #c4dff5;
       --accent-text: #2a6496;
-      --cell-bg:     #eef5fb;
+      --cell-bg:     #dfe6ec;
       --text:        #1a1a1a;
       --subtext:     #aaa;
       --faint:       #e0e0e0;
@@ -189,52 +189,52 @@
     .theme-default {
       --accent:      #b8d4e3;
       --accent-text: #1a4f6e;
-      --cell-bg:     #ddebf1;
+      --cell-bg:     #ced8e2;
     }
     .theme-grey {
       --accent:      #c8cacc;
       --accent-text: #3a3a3a;
-      --cell-bg:     #ebeced;
+      --cell-bg:     #dcddde;
     }
     .theme-brown {
       --accent:      #cec8c5;
       --accent-text: #5c3d2e;
-      --cell-bg:     #e9e5e3;
+      --cell-bg:     #dad6d4;
     }
     .theme-orange {
       --accent:      #f0ceaa;
       --accent-text: #7a3c08;
-      --cell-bg:     #faebdd;
+      --cell-bg:     #ebdcce;
     }
     .theme-yellow {
       --accent:      #eed9a0;
       --accent-text: #6a4e10;
-      --cell-bg:     #fbf3db;
+      --cell-bg:     #ece4cc;
     }
     .theme-green {
       --accent:      #aacfc9;
       --accent-text: #1a5248;
-      --cell-bg:     #ddedea;
+      --cell-bg:     #cededb;
     }
     .theme-blue {
       --accent:      #b8d4e3;
       --accent-text: #1a4f6e;
-      --cell-bg:     #ddebf1;
+      --cell-bg:     #ced8e2;
     }
     .theme-purple {
       --accent:      #cfc4e0;
       --accent-text: #42286e;
-      --cell-bg:     #eae4f2;
+      --cell-bg:     #dbd5e3;
     }
     .theme-pink {
       --accent:      #e4bcce;
       --accent-text: #6e1a46;
-      --cell-bg:     #f4dfeb;
+      --cell-bg:     #e5d0dc;
     }
     .theme-red {
       --accent:      #f0bcbc;
       --accent-text: #6e1a1a;
-      --cell-bg:     #fbe4e4;
+      --cell-bg:     #ecd5d5;
     }
 
     .popover-divider { height: 1px; background: var(--border); margin: 8px 0; }
@@ -242,41 +242,38 @@
     .opt-btn { flex:1; background:#f5f5f5; border:1.5px solid transparent; border-radius:5px; padding:4px 8px; font-family:'Inter',sans-serif; font-size:11px; font-weight:300; color:#999; cursor:pointer; transition:all 0.12s; }
     .opt-btn:hover { background:#eee; }
     .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
-    body.bg-on     { background: #fff; border-radius: 8px; }
-    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 8px; }
 
     /* ── Dark mode ── */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --text:    #e0e0e0;
-        --subtext: #555;
-        --faint:   #333;
-        --border:  #2a2a2a;
-      }
-      .popover {
-        background: #1e1e1e;
-        border-color: #333;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      }
-      .day-cell { background: #1e1e1e; }
-      .day-cell.other-month { background: transparent; }
-      .theme-default .day-cell { background: #1a2530; }
-      .theme-grey    .day-cell { background: #202020; }
-      .theme-brown   .day-cell { background: #251c18; }
-      .theme-orange  .day-cell { background: #261a0e; }
-      .theme-yellow  .day-cell { background: #25200e; }
-      .theme-green   .day-cell { background: #0e2220; }
-      .theme-blue    .day-cell { background: #0e1c26; }
-      .theme-purple  .day-cell { background: #1a1026; }
-      .theme-pink    .day-cell { background: #250e1a; }
-      .theme-red     .day-cell { background: #250e0e; }
-      .swatch.active { border-color: #ccc; }
-      .opt-btn { background:#2a2a2a; color:#666; }
-      .opt-btn:hover { background:#333; }
-      .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
-      body.bg-on { background: #191919; }
-      body.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.bg-on::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      border-radius: 10px;
+      z-index: -1;
+      pointer-events: none;
     }
+    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 10px; }
+    body.dark.bg-on::before { background: #000; }
+    body.dark.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.dark { --text: #e0e0e0; --subtext: #555; --faint: #333; --border: #2a2a2a; }
+    body.dark .popover { background: #1e1e1e; border-color: #333; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    body.dark .day-cell { background: #1e1e1e; }
+    body.dark .day-cell.other-month { background: transparent; }
+    body.dark .theme-default .day-cell { background: #1a2530; }
+    body.dark .theme-grey    .day-cell { background: #202020; }
+    body.dark .theme-brown   .day-cell { background: #251c18; }
+    body.dark .theme-orange  .day-cell { background: #261a0e; }
+    body.dark .theme-yellow  .day-cell { background: #25200e; }
+    body.dark .theme-green   .day-cell { background: #0e2220; }
+    body.dark .theme-blue    .day-cell { background: #0e1c26; }
+    body.dark .theme-purple  .day-cell { background: #1a1026; }
+    body.dark .theme-pink    .day-cell { background: #250e1a; }
+    body.dark .theme-red     .day-cell { background: #250e0e; }
+    body.dark .swatch.active { border-color: #ccc; }
+    body.dark .opt-btn { background: #2a2a2a; color: #666; }
+    body.dark .opt-btn:hover { background: #333; }
+    body.dark .opt-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
   </style>
 </head>
 <body>
@@ -306,6 +303,9 @@
         <div class="popover-label">Color</div>
         <div class="swatch-grid" id="swatchGrid"></div>
         <div class="popover-divider"></div>
+        <div class="popover-label">Mode</div>
+        <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
+        <div class="popover-divider"></div>
         <div class="popover-label">Background</div>
         <div class="opt-row">
           <button class="opt-btn" id="bgOff">off</button>
@@ -329,16 +329,16 @@
                   'July','August','September','October','November','December'];
 
   const THEMES = [
-    { name: 'default', color: '#ddebf1', label: 'Default' },
-    { name: 'grey',    color: '#ebeced', label: 'Grey'    },
-    { name: 'brown',   color: '#e9e5e3', label: 'Brown'   },
-    { name: 'orange',  color: '#faebdd', label: 'Orange'  },
-    { name: 'yellow',  color: '#fbf3db', label: 'Yellow'  },
-    { name: 'green',   color: '#ddedea', label: 'Green'   },
-    { name: 'blue',    color: '#ddebf1', label: 'Blue'    },
-    { name: 'purple',  color: '#eae4f2', label: 'Purple'  },
-    { name: 'pink',    color: '#f4dfeb', label: 'Pink'    },
-    { name: 'red',     color: '#fbe4e4', label: 'Red'     },
+    { name: 'default', color: '#ced8e2', label: 'Default' },
+    { name: 'grey',    color: '#dcddde', label: 'Grey'    },
+    { name: 'brown',   color: '#dad6d4', label: 'Brown'   },
+    { name: 'orange',  color: '#ebdcce', label: 'Orange'  },
+    { name: 'yellow',  color: '#ece4cc', label: 'Yellow'  },
+    { name: 'green',   color: '#cededb', label: 'Green'   },
+    { name: 'blue',    color: '#ced8e2', label: 'Blue'    },
+    { name: 'purple',  color: '#dbd5e3', label: 'Purple'  },
+    { name: 'pink',    color: '#e5d0dc', label: 'Pink'    },
+    { name: 'red',     color: '#ecd5d5', label: 'Red'     },
   ];
 
   const widget   = document.getElementById('widget');
@@ -359,6 +359,11 @@
   popover.addEventListener('click', (e) => e.stopPropagation());
 
   // Background toggle
+  let darkOn = localStorage.getItem('cal-dark') === 'on';
+  function setDark(on) { darkOn = on; localStorage.setItem('cal-dark', on ? 'on' : 'off'); document.body.classList.toggle('dark', on); document.getElementById('modeLight').classList.toggle('active', !on); document.getElementById('modeDark').classList.toggle('active', on); }
+  document.getElementById('modeLight').addEventListener('click', () => setDark(false));
+  document.getElementById('modeDark').addEventListener('click', () => setDark(true));
+  setDark(darkOn);
   let bgOn = localStorage.getItem('cal-bg') === 'on';
   function setBg(on) { bgOn = on; localStorage.setItem('cal-bg', on ? 'on' : 'off'); document.body.classList.toggle('bg-on', on); document.getElementById('bgOff').classList.toggle('active', !on); document.getElementById('bgOn').classList.toggle('active', on); }
   document.getElementById('bgOff').addEventListener('click', () => setBg(false));

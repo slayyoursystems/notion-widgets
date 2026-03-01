@@ -8,7 +8,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { background: transparent; }
-    :root { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; --text:#1a1a1a; --subtext:#aaa; --border:#ebebeb; }
+    :root { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ced8e2; --text:#1a1a1a; --subtext:#aaa; --border:#ebebeb; }
     body { font-family:'Inter',sans-serif; background:transparent; display:flex; flex-direction:column; padding:24px 14px 0 14px; overflow:hidden; }
     .header { font-size:12px; font-weight:300; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); text-align:center; margin-bottom:10px; }
     .cities { display:flex; flex-direction:column; gap:4px; }
@@ -42,40 +42,46 @@
     .opt-btn:hover { background:#eee; }
     .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
     .opt-row { display:flex; gap:4px; margin-top:4px; }
-    body.bg-on     { background:#fff; border-radius:8px; }
-    body.border-on { border:1px solid rgba(55, 53, 47, 0.09); border-radius:8px; }
-    .theme-default { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; }
-    .theme-grey    { --accent:#c8cacc; --accent-text:#3a3a3a; --cell-bg:#ebeced; }
-    .theme-brown   { --accent:#cec8c5; --accent-text:#5c3d2e; --cell-bg:#e9e5e3; }
-    .theme-orange  { --accent:#f0ceaa; --accent-text:#7a3c08; --cell-bg:#faebdd; }
-    .theme-yellow  { --accent:#eed9a0; --accent-text:#6a4e10; --cell-bg:#fbf3db; }
-    .theme-green   { --accent:#aacfc9; --accent-text:#1a5248; --cell-bg:#ddedea; }
-    .theme-blue    { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ddebf1; }
-    .theme-purple  { --accent:#cfc4e0; --accent-text:#42286e; --cell-bg:#eae4f2; }
-    .theme-pink    { --accent:#e4bcce; --accent-text:#6e1a46; --cell-bg:#f4dfeb; }
-    .theme-red     { --accent:#f0bcbc; --accent-text:#6e1a1a; --cell-bg:#fbe4e4; }
-    @media (prefers-color-scheme:dark) {
-      :root { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a; }
-      .popover { background:#1e1e1e; border-color:#333; }
-      .city-select { color:#e0e0e0; }
-      .swatch.active { border-color:#ccc; }
-      .opt-btn { background:#2a2a2a; color:#666; }
-      .opt-btn:hover { background:#333; }
-      .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
-      .popover-divider { background:#333; }
-      body.bg-on { background:#191919; }
-      body.border-on { border-color:rgba(255,255,255,0.082); }
-      .theme-default .city-row { background:#1a2530; }
-      .theme-grey    .city-row { background:#202020; }
-      .theme-brown   .city-row { background:#251c18; }
-      .theme-orange  .city-row { background:#261a0e; }
-      .theme-yellow  .city-row { background:#25200e; }
-      .theme-green   .city-row { background:#0e2220; }
-      .theme-blue    .city-row { background:#0e1c26; }
-      .theme-purple  .city-row { background:#1a1026; }
-      .theme-pink    .city-row { background:#250e1a; }
-      .theme-red     .city-row { background:#250e0e; }
+    .theme-default { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ced8e2; }
+    .theme-grey    { --accent:#c8cacc; --accent-text:#3a3a3a; --cell-bg:#dcddde; }
+    .theme-brown   { --accent:#cec8c5; --accent-text:#5c3d2e; --cell-bg:#dad6d4; }
+    .theme-orange  { --accent:#f0ceaa; --accent-text:#7a3c08; --cell-bg:#ebdcce; }
+    .theme-yellow  { --accent:#eed9a0; --accent-text:#6a4e10; --cell-bg:#ece4cc; }
+    .theme-green   { --accent:#aacfc9; --accent-text:#1a5248; --cell-bg:#cededb; }
+    .theme-blue    { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ced8e2; }
+    .theme-purple  { --accent:#cfc4e0; --accent-text:#42286e; --cell-bg:#dbd5e3; }
+    .theme-pink    { --accent:#e4bcce; --accent-text:#6e1a46; --cell-bg:#e5d0dc; }
+    .theme-red     { --accent:#f0bcbc; --accent-text:#6e1a1a; --cell-bg:#ecd5d5; }
+    body.bg-on::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      border-radius: 10px;
+      z-index: -1;
+      pointer-events: none;
     }
+    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 10px; }
+    body.dark.bg-on::before { background: #000; }
+    body.dark.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.dark { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a; }
+    body.dark .popover { background:#1e1e1e; border-color:#333; }
+    body.dark .city-select { color:#e0e0e0; }
+    body.dark .swatch.active { border-color:#ccc; }
+    body.dark .opt-btn { background:#2a2a2a; color:#666; }
+    body.dark .opt-btn:hover { background:#333; }
+    body.dark .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
+    body.dark .popover-divider { background:#333; }
+    body.dark .theme-default .city-row { background:#1a2530; }
+    body.dark .theme-grey    .city-row { background:#202020; }
+    body.dark .theme-brown   .city-row { background:#251c18; }
+    body.dark .theme-orange  .city-row { background:#261a0e; }
+    body.dark .theme-yellow  .city-row { background:#25200e; }
+    body.dark .theme-green   .city-row { background:#0e2220; }
+    body.dark .theme-blue    .city-row { background:#0e1c26; }
+    body.dark .theme-purple  .city-row { background:#1a1026; }
+    body.dark .theme-pink    .city-row { background:#250e1a; }
+    body.dark .theme-red     .city-row { background:#250e0e; }
   </style>
 </head>
 <body>
@@ -95,6 +101,9 @@
           <select class="city-select" id="citySelect"></select>
           <button class="city-add-btn" id="cityAddBtn">+</button>
         </div>
+        <div class="popover-divider"></div>
+        <div class="popover-label">Mode</div>
+        <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
         <div class="popover-divider"></div>
         <div class="popover-label">Background</div>
         <div class="opt-row"><button class="opt-btn" id="bgOff">off</button><button class="opt-btn" id="bgOn">on</button></div>
@@ -118,7 +127,7 @@
     {name:'Tokyo',tz:'Asia/Tokyo'},{name:'Sydney',tz:'Australia/Sydney'},
     {name:'Auckland',tz:'Pacific/Auckland'}
   ];
-  const THEMES=[{name:'default',color:'#ddebf1'},{name:'grey',color:'#ebeced'},{name:'brown',color:'#e9e5e3'},{name:'orange',color:'#faebdd'},{name:'yellow',color:'#fbf3db'},{name:'green',color:'#ddedea'},{name:'blue',color:'#ddebf1'},{name:'purple',color:'#eae4f2'},{name:'pink',color:'#f4dfeb'},{name:'red',color:'#fbe4e4'}];
+  const THEMES=[{name:'default',color:'#ced8e2'},{name:'grey',color:'#dcddde'},{name:'brown',color:'#dad6d4'},{name:'orange',color:'#ebdcce'},{name:'yellow',color:'#ece4cc'},{name:'green',color:'#cededb'},{name:'blue',color:'#ced8e2'},{name:'purple',color:'#dbd5e3'},{name:'pink',color:'#e5d0dc'},{name:'red',color:'#ecd5d5'}];
   const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -218,6 +227,11 @@
   document.addEventListener('click',()=>popover.classList.remove('open'));
   popover.addEventListener('click',e=>e.stopPropagation());
 
+  let darkOn = localStorage.getItem('wc-dark') === 'on';
+  function setDark(on) { darkOn = on; localStorage.setItem('wc-dark', on ? 'on' : 'off'); document.body.classList.toggle('dark', on); document.getElementById('modeLight').classList.toggle('active', !on); document.getElementById('modeDark').classList.toggle('active', on); }
+  document.getElementById('modeLight').addEventListener('click', () => setDark(false));
+  document.getElementById('modeDark').addEventListener('click', () => setDark(true));
+  setDark(darkOn);
   let bgOn=localStorage.getItem('wc-bg')==='on';
   function setBg(on){bgOn=on;localStorage.setItem('wc-bg',on?'on':'off');document.body.classList.toggle('bg-on',on);document.getElementById('bgOff').classList.toggle('active',!on);document.getElementById('bgOn').classList.toggle('active',on);}
   document.getElementById('bgOff').addEventListener('click',()=>setBg(false));

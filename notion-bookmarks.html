@@ -12,7 +12,7 @@
     :root {
       --accent:      #b8d4e3;
       --accent-text: #1a4f6e;
-      --cell-bg:     #ddebf1;
+      --cell-bg:     #ced8e2;
       --text:        #1a1a1a;
       --subtext:     #aaa;
       --border:      #ebebeb;
@@ -241,36 +241,41 @@
     .swatch.active { border-color: #666; }
 
     /* ── Themes ── */
-    .theme-default { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ddebf1; }
-    .theme-grey    { --accent: #c8cacc; --accent-text: #3a3a3a; --cell-bg: #ebeced; }
-    .theme-brown   { --accent: #cec8c5; --accent-text: #5c3d2e; --cell-bg: #e9e5e3; }
-    .theme-orange  { --accent: #f0ceaa; --accent-text: #7a3c08; --cell-bg: #faebdd; }
-    .theme-yellow  { --accent: #eed9a0; --accent-text: #6a4e10; --cell-bg: #fbf3db; }
-    .theme-green   { --accent: #aacfc9; --accent-text: #1a5248; --cell-bg: #ddedea; }
-    .theme-blue    { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ddebf1; }
-    .theme-purple  { --accent: #cfc4e0; --accent-text: #42286e; --cell-bg: #eae4f2; }
-    .theme-pink    { --accent: #e4bcce; --accent-text: #6e1a46; --cell-bg: #f4dfeb; }
-    .theme-red     { --accent: #f0bcbc; --accent-text: #6e1a1a; --cell-bg: #fbe4e4; }
+    .theme-default { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ced8e2; }
+    .theme-grey    { --accent: #c8cacc; --accent-text: #3a3a3a; --cell-bg: #dcddde; }
+    .theme-brown   { --accent: #cec8c5; --accent-text: #5c3d2e; --cell-bg: #dad6d4; }
+    .theme-orange  { --accent: #f0ceaa; --accent-text: #7a3c08; --cell-bg: #ebdcce; }
+    .theme-yellow  { --accent: #eed9a0; --accent-text: #6a4e10; --cell-bg: #ece4cc; }
+    .theme-green   { --accent: #aacfc9; --accent-text: #1a5248; --cell-bg: #cededb; }
+    .theme-blue    { --accent: #b8d4e3; --accent-text: #1a4f6e; --cell-bg: #ced8e2; }
+    .theme-purple  { --accent: #cfc4e0; --accent-text: #42286e; --cell-bg: #dbd5e3; }
+    .theme-pink    { --accent: #e4bcce; --accent-text: #6e1a46; --cell-bg: #e5d0dc; }
+    .theme-red     { --accent: #f0bcbc; --accent-text: #6e1a1a; --cell-bg: #ecd5d5; }
 
     .popover-divider { height: 1px; background: var(--border); margin: 8px 0; }
     .opt-row { display: flex; gap: 5px; }
     .opt-btn { flex:1; background:#f5f5f5; border:1.5px solid transparent; border-radius:5px; padding:4px 8px; font-family:'Inter',sans-serif; font-size:11px; font-weight:300; color:#999; cursor:pointer; transition:all 0.12s; }
     .opt-btn:hover { background:#eee; }
     .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
-    body.bg-on     { background: #fff; border-radius: 8px; }
-    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 8px; }
-
-    @media (prefers-color-scheme: dark) {
-      :root { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a; }
-      .popover { background: #1e1e1e; border-color: #333; }
-      .add-form input { color: #e0e0e0; }
-      .swatch.active { border-color: #ccc; }
-      .opt-btn { background:#2a2a2a; color:#666; }
-      .opt-btn:hover { background:#333; }
-      .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
-      body.bg-on { background: #191919; }
-      body.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.bg-on::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      border-radius: 10px;
+      z-index: -1;
+      pointer-events: none;
     }
+    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 10px; }
+    body.dark.bg-on::before { background: #000; }
+    body.dark.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.dark { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a; }
+    body.dark .popover { background: #1e1e1e; border-color: #333; }
+    body.dark .add-form input { color: #e0e0e0; }
+    body.dark .swatch.active { border-color: #ccc; }
+    body.dark .opt-btn { background: #2a2a2a; color: #666; }
+    body.dark .opt-btn:hover { background: #333; }
+    body.dark .opt-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
   </style>
 </head>
 <body>
@@ -296,6 +301,9 @@
         <div class="popover-label">Color</div>
         <div class="swatch-grid" id="swatchGrid"></div>
         <div class="popover-divider"></div>
+        <div class="popover-label">Mode</div>
+        <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
+        <div class="popover-divider"></div>
         <div class="popover-label">Background</div>
         <div class="opt-row">
           <button class="opt-btn" id="bgOff">off</button>
@@ -315,11 +323,11 @@
 
 <script>
   const THEMES = [
-    { name:'default', color:'#ddebf1' }, { name:'grey',   color:'#ebeced' },
-    { name:'brown',   color:'#e9e5e3' }, { name:'orange', color:'#faebdd' },
-    { name:'yellow',  color:'#fbf3db' }, { name:'green',  color:'#ddedea' },
-    { name:'blue',    color:'#ddebf1' }, { name:'purple', color:'#eae4f2' },
-    { name:'pink',    color:'#f4dfeb' }, { name:'red',    color:'#fbe4e4' },
+    { name:'default', color:'#ced8e2' }, { name:'grey',   color:'#dcddde' },
+    { name:'brown',   color:'#dad6d4' }, { name:'orange', color:'#ebdcce' },
+    { name:'yellow',  color:'#ece4cc' }, { name:'green',  color:'#cededb' },
+    { name:'blue',    color:'#ced8e2' }, { name:'purple', color:'#dbd5e3' },
+    { name:'pink',    color:'#e5d0dc' }, { name:'red',    color:'#ecd5d5' },
   ];
 
   const DEFAULT_BMS = [
@@ -416,6 +424,11 @@
   popover.addEventListener('click', e => e.stopPropagation());
 
   // Background toggle
+  let darkOn = localStorage.getItem('bm-dark') === 'on';
+  function setDark(on) { darkOn = on; localStorage.setItem('bm-dark', on ? 'on' : 'off'); document.body.classList.toggle('dark', on); document.getElementById('modeLight').classList.toggle('active', !on); document.getElementById('modeDark').classList.toggle('active', on); }
+  document.getElementById('modeLight').addEventListener('click', () => setDark(false));
+  document.getElementById('modeDark').addEventListener('click', () => setDark(true));
+  setDark(darkOn);
   let bgOn = localStorage.getItem('bm-bg') === 'on';
   function setBg(on) { bgOn = on; localStorage.setItem('bm-bg', on ? 'on' : 'off'); document.body.classList.toggle('bg-on', on); document.getElementById('bgOff').classList.toggle('active', !on); document.getElementById('bgOn').classList.toggle('active', on); }
   document.getElementById('bgOff').addEventListener('click', () => setBg(false));
