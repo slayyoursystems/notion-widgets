@@ -8,7 +8,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { background: transparent; }
-    :root { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ced8e2; --text:#1a1a1a; --subtext:#bbb; --border:#ebebeb; }
+    :root { --accent: #233850; --accent-text: #fff; --cell-bg: #e5f2fc; --text:#1a1a1a; --subtext:#bbb; --border:#ebebeb; }
     body { font-family:'Inter',sans-serif; background:transparent; display:flex; flex-direction:column; height:100vh; padding:24px 14px 0 14px; overflow:hidden; }
     .header { font-size:12px; font-weight:300; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); text-align:center; margin-bottom:12px; flex-shrink:0; }
     .pad-wrap { flex:1; background:var(--cell-bg); border-radius:6px; display:flex; overflow:hidden; }
@@ -33,16 +33,17 @@
     .opt-btn:hover { background:#eee; }
     .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
     .opt-row { display:flex; gap:4px; margin-top:4px; }
-    .theme-default { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ced8e2; }
-    .theme-grey    { --accent:#c8cacc; --accent-text:#3a3a3a; --cell-bg:#dcddde; }
-    .theme-brown   { --accent:#cec8c5; --accent-text:#5c3d2e; --cell-bg:#dad6d4; }
-    .theme-orange  { --accent:#f0ceaa; --accent-text:#7a3c08; --cell-bg:#ebdcce; }
-    .theme-yellow  { --accent:#eed9a0; --accent-text:#6a4e10; --cell-bg:#ece4cc; }
-    .theme-green   { --accent:#aacfc9; --accent-text:#1a5248; --cell-bg:#cededb; }
-    .theme-blue    { --accent:#b8d4e3; --accent-text:#1a4f6e; --cell-bg:#ced8e2; }
-    .theme-purple  { --accent:#cfc4e0; --accent-text:#42286e; --cell-bg:#dbd5e3; }
-    .theme-pink    { --accent:#e4bcce; --accent-text:#6e1a46; --cell-bg:#e5d0dc; }
-    .theme-red     { --accent:#f0bcbc; --accent-text:#6e1a1a; --cell-bg:#ecd5d5; }
+
+    .theme-default { --accent: #233850; --accent-text: #fff; --cell-bg: #e5f2fc; }
+    .theme-grey { --accent: #383836; --accent-text: #fff; --cell-bg: #f0efed; }
+    .theme-brown { --accent: #45362d; --accent-text: #fff; --cell-bg: #f5ede9; }
+    .theme-orange { --accent: #53361f; --accent-text: #fff; --cell-bg: #fcebde; }
+    .theme-yellow { --accent: #504425; --accent-text: #fff; --cell-bg: #f9f3db; }
+    .theme-green { --accent: #263d30; --accent-text: #fff; --cell-bg: #e8f1eb; }
+    .theme-blue { --accent: #233850; --accent-text: #fff; --cell-bg: #e5f2fc; }
+    .theme-purple { --accent: #3c2d48; --accent-text: #fff; --cell-bg: #f3ebf9; }
+    .theme-pink { --accent: #502c29; --accent-text: #fff; --cell-bg: #fce9e7; }
+    .theme-red { --accent: #502c29; --accent-text: #fff; --cell-bg: #fce9e7; }
     body.bg-on::before {
       content: '';
       position: fixed;
@@ -62,16 +63,17 @@
     body.dark .opt-btn { background:#2a2a2a; color:#666; }
     body.dark .opt-btn:hover { background:#333; }
     body.dark .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
-    body.dark .theme-default .pad-wrap { background:#1a2530; }
-    body.dark .theme-grey    .pad-wrap { background:#202020; }
-    body.dark .theme-brown   .pad-wrap { background:#251c18; }
-    body.dark .theme-orange  .pad-wrap { background:#261a0e; }
-    body.dark .theme-yellow  .pad-wrap { background:#25200e; }
-    body.dark .theme-green   .pad-wrap { background:#0e2220; }
-    body.dark .theme-blue    .pad-wrap { background:#0e1c26; }
-    body.dark .theme-purple  .pad-wrap { background:#1a1026; }
-    body.dark .theme-pink    .pad-wrap { background:#250e1a; }
-    body.dark .theme-red     .pad-wrap { background:#250e0e; }
+
+    body.dark .theme-default { --cell-bg: #233850; --accent: #e5f2fc; --accent-text: #233850; }
+    body.dark .theme-grey { --cell-bg: #383836; --accent: #f0efed; --accent-text: #383836; }
+    body.dark .theme-brown { --cell-bg: #45362d; --accent: #f5ede9; --accent-text: #45362d; }
+    body.dark .theme-orange { --cell-bg: #53361f; --accent: #fcebde; --accent-text: #53361f; }
+    body.dark .theme-yellow { --cell-bg: #504425; --accent: #f9f3db; --accent-text: #504425; }
+    body.dark .theme-green { --cell-bg: #263d30; --accent: #e8f1eb; --accent-text: #263d30; }
+    body.dark .theme-blue { --cell-bg: #233850; --accent: #e5f2fc; --accent-text: #233850; }
+    body.dark .theme-purple { --cell-bg: #3c2d48; --accent: #f3ebf9; --accent-text: #3c2d48; }
+    body.dark .theme-pink { --cell-bg: #502c29; --accent: #fce9e7; --accent-text: #502c29; }
+    body.dark .theme-red { --cell-bg: #502c29; --accent: #fce9e7; --accent-text: #502c29; }
   </style>
 </head>
 <body>
@@ -101,7 +103,7 @@
   </div>
 </div>
 <script>
-  const THEMES=[{name:'default',color:'#ced8e2'},{name:'grey',color:'#dcddde'},{name:'brown',color:'#dad6d4'},{name:'orange',color:'#ebdcce'},{name:'yellow',color:'#ece4cc'},{name:'green',color:'#cededb'},{name:'blue',color:'#ced8e2'},{name:'purple',color:'#dbd5e3'},{name:'pink',color:'#e5d0dc'},{name:'red',color:'#ecd5d5'}];
+  const THEMES=[{name:'default',color:'#233850'},{name:'grey',color:'#383836'},{name:'brown',color:'#45362d'},{name:'orange',color:'#53361f'},{name:'yellow',color:'#504425'},{name:'green',color:'#263d30'},{name:'blue',color:'#233850'},{name:'purple',color:'#3c2d48'},{name:'pink',color:'#502c29'},{name:'red',color:'#502c29'}];
   const widget=document.getElementById('widget'),pad=document.getElementById('pad'),popover=document.getElementById('popover'),menuBtn=document.getElementById('menuBtn');
   let activeTheme=localStorage.getItem('np-theme')||'default';
   widget.classList.add('theme-'+activeTheme);
