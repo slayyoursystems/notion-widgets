@@ -8,7 +8,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { background: transparent; }
-    :root { --accent: #233850; --accent-text: #fff; --cell-bg: #e5f2fc; --text:#1a1a1a; --subtext:#bbb; --border:#ebebeb; }
+    :root { --accent: #337EA9; --accent-text: #fff; --cell-bg: #e5f2fc; --text:#1a1a1a; --subtext:#bbb; --border:#ebebeb; }
     body { font-family:'Inter',sans-serif; background:transparent; display:flex; flex-direction:column; height:100vh; padding:24px 14px 0 14px; overflow:hidden; }
     .header { font-size:12px; font-weight:300; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); text-align:center; margin-bottom:12px; flex-shrink:0; }
     .pad-wrap { flex:1; background:var(--cell-bg); border-radius:6px; display:flex; overflow:hidden; }
@@ -34,17 +34,17 @@
     .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
     .opt-row { display:flex; gap:4px; margin-top:4px; }
 
-    .theme-default { --accent: #233850; --accent-text: #fff; --cell-bg: #e5f2fc; }
-    .theme-grey { --accent: #383836; --accent-text: #fff; --cell-bg: #f0efed; }
-    .theme-brown { --accent: #45362d; --accent-text: #fff; --cell-bg: #f5ede9; }
-    .theme-orange { --accent: #53361f; --accent-text: #fff; --cell-bg: #fcebde; }
-    .theme-yellow { --accent: #504425; --accent-text: #fff; --cell-bg: #f9f3db; }
-    .theme-green { --accent: #263d30; --accent-text: #fff; --cell-bg: #e8f1eb; }
-    .theme-blue { --accent: #233850; --accent-text: #fff; --cell-bg: #e5f2fc; }
-    .theme-purple { --accent: #3c2d48; --accent-text: #fff; --cell-bg: #f3ebf9; }
-    .theme-pink { --accent: #502c29; --accent-text: #fff; --cell-bg: #fce9e7; }
-    .theme-red { --accent: #502c29; --accent-text: #fff; --cell-bg: #fce9e7; }
-    body.bg-on::before {
+    .theme-default { --accent: #337EA9; --accent-text: #fff; --cell-bg: #E9F3F7; }
+    .theme-grey { --accent: #9B9A97; --accent-text: #1a1a1a; --cell-bg: #F1F1EF; }
+    .theme-brown { --accent: #64473A; --accent-text: #fff; --cell-bg: #F3EEEE; }
+    .theme-orange { --accent: #D9730D; --accent-text: #fff; --cell-bg: #F8ECDF; }
+    .theme-yellow { --accent: #CB912F; --accent-text: #1a1a1a; --cell-bg: #FAF3DD; }
+    .theme-green { --accent: #448361; --accent-text: #fff; --cell-bg: #EEF3ED; }
+    .theme-blue { --accent: #337EA9; --accent-text: #fff; --cell-bg: #E9F3F7; }
+    .theme-purple { --accent: #9065B0; --accent-text: #fff; --cell-bg: #F6F3F8; }
+    .theme-pink { --accent: #C14F8A; --accent-text: #fff; --cell-bg: #F9F2F5; }
+    .theme-red { --accent: #D44C47; --accent-text: #fff; --cell-bg: #FAECEC; }
+    body::before {
       content: '';
       position: fixed;
       inset: 0;
@@ -53,9 +53,9 @@
       z-index: -1;
       pointer-events: none;
     }
-    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 10px; }
-    body.dark.bg-on::before { background: #000; }
-    body.dark.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.dark::before { background: #000; }
+    body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
+    body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
     body.dark { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a; }
     body.dark .popover { background:#1e1e1e; border-color:#333; }
     body.dark .popover-divider { background:#333; }
@@ -64,16 +64,27 @@
     body.dark .opt-btn:hover { background:#333; }
     body.dark .opt-btn.active { background:#1e1e1e; border-color:#555; color:#e0e0e0; }
 
-    body.dark .theme-default { --cell-bg: #233850; --accent: #e5f2fc; --accent-text: #233850; }
-    body.dark .theme-grey { --cell-bg: #383836; --accent: #f0efed; --accent-text: #383836; }
-    body.dark .theme-brown { --cell-bg: #45362d; --accent: #f5ede9; --accent-text: #45362d; }
-    body.dark .theme-orange { --cell-bg: #53361f; --accent: #fcebde; --accent-text: #53361f; }
-    body.dark .theme-yellow { --cell-bg: #504425; --accent: #f9f3db; --accent-text: #504425; }
-    body.dark .theme-green { --cell-bg: #263d30; --accent: #e8f1eb; --accent-text: #263d30; }
-    body.dark .theme-blue { --cell-bg: #233850; --accent: #e5f2fc; --accent-text: #233850; }
-    body.dark .theme-purple { --cell-bg: #3c2d48; --accent: #f3ebf9; --accent-text: #3c2d48; }
-    body.dark .theme-pink { --cell-bg: #502c29; --accent: #fce9e7; --accent-text: #502c29; }
-    body.dark .theme-red { --cell-bg: #502c29; --accent: #fce9e7; --accent-text: #502c29; }
+    body.dark
+    body.dark
+    body.dark
+    body.dark
+    body.dark
+    body.dark
+    body.dark
+    body.dark
+    body.dark
+    body.dark
+
+    body.dark .theme-default { --cell-bg: #1F282D; }
+    body.dark .theme-grey { --cell-bg: #252525; }
+    body.dark .theme-brown { --cell-bg: #2E2724; }
+    body.dark .theme-orange { --cell-bg: #36291F; }
+    body.dark .theme-yellow { --cell-bg: #372E20; }
+    body.dark .theme-green { --cell-bg: #242B26; }
+    body.dark .theme-blue { --cell-bg: #1F282D; }
+    body.dark .theme-purple { --cell-bg: #2A2430; }
+    body.dark .theme-pink { --cell-bg: #2E2328; }
+    body.dark .theme-red { --cell-bg: #332523; }
   </style>
 </head>
 <body>
@@ -90,9 +101,6 @@
         <div class="popover-divider"></div>
         <div class="popover-label">Mode</div>
         <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
-        <div class="popover-divider"></div>
-        <div class="popover-label">Background</div>
-        <div class="opt-row"><button class="opt-btn" id="bgOff">off</button><button class="opt-btn" id="bgOn">on</button></div>
         <div class="popover-label" style="margin-top:8px">Border</div>
         <div class="opt-row"><button class="opt-btn" id="borderOff">off</button><button class="opt-btn" id="borderOn">on</button></div>
         <div class="popover-divider"></div>
@@ -103,7 +111,7 @@
   </div>
 </div>
 <script>
-  const THEMES=[{name:'default',color:'#233850'},{name:'grey',color:'#383836'},{name:'brown',color:'#45362d'},{name:'orange',color:'#53361f'},{name:'yellow',color:'#504425'},{name:'green',color:'#263d30'},{name:'blue',color:'#233850'},{name:'purple',color:'#3c2d48'},{name:'pink',color:'#502c29'},{name:'red',color:'#502c29'}];
+  const THEMES=[{name:'default',color:'#337EA9'},{name:'grey',color:'#9B9A97'},{name:'brown',color:'#64473A'},{name:'orange',color:'#D9730D'},{name:'yellow',color:'#CB912F'},{name:'green',color:'#448361'},{name:'blue',color:'#337EA9'},{name:'purple',color:'#9065B0'},{name:'pink',color:'#C14F8A'},{name:'red',color:'#D44C47'}];
   const widget=document.getElementById('widget'),pad=document.getElementById('pad'),popover=document.getElementById('popover'),menuBtn=document.getElementById('menuBtn');
   let activeTheme=localStorage.getItem('np-theme')||'default';
   widget.classList.add('theme-'+activeTheme);
@@ -122,11 +130,6 @@
   document.getElementById('modeLight').addEventListener('click', () => setDark(false));
   document.getElementById('modeDark').addEventListener('click', () => setDark(true));
   setDark(darkOn);
-  let bgOn=localStorage.getItem('np-bg')==='on';
-  function setBg(on){bgOn=on;localStorage.setItem('np-bg',on?'on':'off');document.body.classList.toggle('bg-on',on);document.getElementById('bgOff').classList.toggle('active',!on);document.getElementById('bgOn').classList.toggle('active',on);}
-  document.getElementById('bgOff').addEventListener('click',()=>setBg(false));
-  document.getElementById('bgOn').addEventListener('click',()=>setBg(true));
-  setBg(bgOn);
   let borderOn=localStorage.getItem('np-border')==='on';
   function setBorder(on){borderOn=on;localStorage.setItem('np-border',on?'on':'off');document.body.classList.toggle('border-on',on);document.getElementById('borderOff').classList.toggle('active',!on);document.getElementById('borderOn').classList.toggle('active',on);}
   document.getElementById('borderOff').addEventListener('click',()=>setBorder(false));

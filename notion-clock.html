@@ -171,7 +171,7 @@
     /* ── Background & border toggles ── */
 
     /* ── Dark mode ── */
-    body.bg-on::before {
+    body::before {
       content: '';
       position: fixed;
       inset: 0;
@@ -180,9 +180,9 @@
       z-index: -1;
       pointer-events: none;
     }
-    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 10px; }
-    body.dark.bg-on::before { background: #000; }
-    body.dark.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.dark::before { background: #000; }
+    body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
+    body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
     body.dark .time { color: #f0f0f0; }
     body.dark .time .seconds { color: #555; }
     body.dark .ampm { color: #444; }
@@ -223,12 +223,6 @@
         <div class="popover-divider"></div>
         <div class="popover-label">Mode</div>
         <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
-        <div class="popover-divider"></div>
-        <div class="popover-label">Background</div>
-        <div class="toggle-row">
-          <button class="fmt-btn" id="bgOff">off</button>
-          <button class="fmt-btn" id="bgOn">on</button>
-        </div>
         <div class="popover-divider"></div>
         <div class="popover-label">Border</div>
         <div class="toggle-row">
@@ -302,17 +296,6 @@
   document.getElementById('modeLight').addEventListener('click', () => setDark(false));
   document.getElementById('modeDark').addEventListener('click', () => setDark(true));
   setDark(darkOn);
-  let bgOn = localStorage.getItem('clock-bg') === 'on';
-    function setBg(on) {
-      bgOn = on;
-      localStorage.setItem('clock-bg', on ? 'on' : 'off');
-      document.body.classList.toggle('bg-on', on);
-      document.getElementById('bgOff').classList.toggle('active', !on);
-      document.getElementById('bgOn').classList.toggle('active', on);
-    }
-    document.getElementById('bgOff').addEventListener('click', () => setBg(false));
-    document.getElementById('bgOn').addEventListener('click', () => setBg(true));
-    setBg(bgOn);
 
     // Border toggle
     let borderOn = localStorage.getItem('clock-border') === 'on';

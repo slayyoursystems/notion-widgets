@@ -145,7 +145,7 @@
     .opt-btn:hover { background:#eee; }
     .opt-btn.active { background:#fff; border-color:#ccc; color:#1a1a1a; }
     .popover-label { font-size:9px; font-weight:400; letter-spacing:0.12em; text-transform:uppercase; color:#bbb; padding: 4px 8px 2px; }
-    body.bg-on::before {
+    body::before {
       content: '';
       position: fixed;
       inset: 0;
@@ -154,9 +154,9 @@
       z-index: -1;
       pointer-events: none;
     }
-    body.border-on { border: 1px solid rgba(55, 53, 47, 0.09); border-radius: 10px; }
-    body.dark.bg-on::before { background: #000; }
-    body.dark.border-on { border-color: rgba(255, 255, 255, 0.082); }
+    body.dark::before { background: #000; }
+    body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
+    body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
     body.dark { --bg: #1e1e1e; --text: #e0e0e0; --muted: #9e9e9e; --border: #2a2a2a; --shadow: #424242; }
     body.dark .opt-btn { background:#2a2a2a; color:#666; }
     body.dark .opt-btn:hover { background:#333; }
@@ -174,12 +174,6 @@
           <div class="popover-divider"></div>
         <div class="popover-label">Mode</div>
         <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
-        <div class="popover-divider"></div>
-          <div class="popover-label">Background</div>
-          <div class="opt-row">
-            <button class="opt-btn" id="bgOff">off</button>
-            <button class="opt-btn" id="bgOn">on</button>
-          </div>
           <div class="popover-divider"></div>
           <div class="popover-label">Border</div>
           <div class="opt-row">
@@ -370,11 +364,6 @@
   document.getElementById('modeLight').addEventListener('click', () => setDark(false));
   document.getElementById('modeDark').addEventListener('click', () => setDark(true));
   setDark(darkOn);
-  let bgOn = localStorage.getItem('moon-bg') === 'on';
-    function setBg(on) { bgOn = on; localStorage.setItem('moon-bg', on ? 'on' : 'off'); document.body.classList.toggle('bg-on', on); document.getElementById('bgOff').classList.toggle('active', !on); document.getElementById('bgOn').classList.toggle('active', on); }
-    document.getElementById('bgOff').addEventListener('click', () => setBg(false));
-    document.getElementById('bgOn').addEventListener('click', () => setBg(true));
-    setBg(bgOn);
 
     // Border toggle
     let borderOn = localStorage.getItem('moon-border') === 'on';
