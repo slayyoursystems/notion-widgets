@@ -294,14 +294,15 @@
   const MONTHS = ['January','February','March','April','May','June',
                   'July','August','September','October','November','December'];
 
-  const THEMES=[{name:'default',color:'#337EA9'},{name:'grey',color:'#9B9A97'},{name:'brown',color:'#64473A'},{name:'orange',color:'#D9730D'},{name:'yellow',color:'#CB912F'},{name:'green',color:'#448361'},{name:'blue',color:'#337EA9'},{name:'purple',color:'#9065B0'},{name:'pink',color:'#C14F8A'},{name:'red',color:'#D44C47'}];
+  const THEMES=[{name:'grey',color:'#9B9A97'},{name:'brown',color:'#64473A'},{name:'orange',color:'#D9730D'},{name:'yellow',color:'#CB912F'},{name:'green',color:'#448361'},{name:'blue',color:'#337EA9'},{name:'purple',color:'#9065B0'},{name:'pink',color:'#C14F8A'},{name:'red',color:'#D44C47'}];
 
   const widget   = document.getElementById('widget');
   const popover  = document.getElementById('popover');
   const menuBtn  = document.getElementById('menuBtn');
   const today    = new Date();
   let current    = { year: today.getFullYear(), month: today.getMonth() };
-  let activeTheme = localStorage.getItem('cal-theme') || 'default';
+  let activeTheme = localStorage.getItem('cal-theme') || 'blue';
+  if (activeTheme === 'default') activeTheme = 'blue';
   widget.classList.add(`theme-${activeTheme}`);
 
   /* ── Popover toggle ── */
