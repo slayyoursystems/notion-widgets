@@ -123,13 +123,32 @@
       background: #fff;
       border: 1px solid #ebebeb;
       border-radius: 8px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
       z-index: 100;
       white-space: nowrap;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 0;
     }
 
-    .popover.open { display: block; }
+    .popover.open { display: flex; }
+
+    .pop-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 10px;
+    }
+    .pop-col:first-child { padding-left: 2px; }
+    .pop-col:last-child  { padding-right: 2px; }
+
+    .pop-divider {
+      width: 1px;
+      background: #ebebeb;
+      align-self: stretch;
+      flex-shrink: 0;
+    }
 
     .popover-label {
       font-size: 9px;
@@ -166,7 +185,6 @@
       color: #1a1a1a;
     }
 
-    .popover-divider { height: 1px; background: #ebebeb; margin: 8px 0; }
 
     /* ── Background & border toggles ── */
 
@@ -195,10 +213,7 @@
     body.dark .fmt-btn { background: #2a2a2a; color: #666; }
     body.dark .fmt-btn:hover { background: #333; }
     body.dark .fmt-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
-    body.dark .popover-divider { background: #333; }
-    body.dark .opt-btn { background: #2a2a2a; color: #666; }
-    body.dark .opt-btn:hover { background: #333; }
-    body.dark .opt-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
+    body.dark .pop-divider { background: #333; }
   </style>
 </head>
 <body>
@@ -215,19 +230,28 @@
     <div class="menu-wrap">
       <button class="menu-btn" id="menuBtn">···</button>
       <div class="popover" id="popover">
-        <div class="popover-label">Time format</div>
-        <div class="toggle-row">
-          <button class="fmt-btn" id="btn12" onclick="setFormat('12')">12h</button>
-          <button class="fmt-btn" id="btn24" onclick="setFormat('24')">24h</button>
+        <div class="pop-col">
+          <div class="popover-label">Format</div>
+          <div class="toggle-row">
+            <button class="fmt-btn" id="btn12" onclick="setFormat('12')">12h</button>
+            <button class="fmt-btn" id="btn24" onclick="setFormat('24')">24h</button>
+          </div>
         </div>
-        <div class="popover-divider"></div>
-        <div class="popover-label">Mode</div>
-        <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
-        <div class="popover-divider"></div>
-        <div class="popover-label">Border</div>
-        <div class="toggle-row">
-          <button class="fmt-btn" id="borderOff">off</button>
-          <button class="fmt-btn" id="borderOn">on</button>
+        <div class="pop-divider"></div>
+        <div class="pop-col">
+          <div class="popover-label">Mode</div>
+          <div class="toggle-row">
+            <button class="fmt-btn" id="modeLight">light</button>
+            <button class="fmt-btn" id="modeDark">dark</button>
+          </div>
+        </div>
+        <div class="pop-divider"></div>
+        <div class="pop-col">
+          <div class="popover-label">Border</div>
+          <div class="toggle-row">
+            <button class="fmt-btn" id="borderOff">off</button>
+            <button class="fmt-btn" id="borderOn">on</button>
+          </div>
         </div>
       </div>
     </div>
