@@ -173,7 +173,7 @@
           <div class="color-grid" id="colorGrid"></div>
           <div class="popover-divider"></div>
         <div class="popover-label">Mode</div>
-        <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button></div>
+        <div class="opt-row"><button class="opt-btn" id="modeLight">light</button><button class="opt-btn" id="modeDark">dark</button><button class="opt-btn" id="modeAuto">auto</button></div>
           <div class="popover-divider"></div>
           <div class="popover-label">Border</div>
           <div class="opt-row">
@@ -359,11 +359,24 @@
     updateDisplay();
 
     // Background toggle
-    let darkOn = localStorage.getItem('moon-dark') === 'on';
-  function setDark(on) { darkOn = on; localStorage.setItem('moon-dark', on ? 'on' : 'off'); document.body.classList.toggle('dark', on); document.getElementById('modeLight').classList.toggle('active', !on); document.getElementById('modeDark').classList.toggle('active', on); }
-  document.getElementById('modeLight').addEventListener('click', () => setDark(false));
-  document.getElementById('modeDark').addEventListener('click', () => setDark(true));
-  setDark(darkOn);
+    const _mq = window.matchMedia('(prefers-color-scheme: dark)');
+    let _mode = localStorage.getItem('moon-dark') || 'auto';
+    if (_mode === 'on') _mode = 'dark';
+    if (_mode === 'off') _mode = 'light';
+    function _applyDark(m) {
+      document.body.classList.toggle('dark', m === 'dark' || (m === 'auto' && _mq.matches));
+    }
+    function setMode(m) {
+      _mode = m; localStorage.setItem('moon-dark', m); _applyDark(m);
+      document.getElementById('modeLight').classList.toggle('active', m === 'light');
+      document.getElementById('modeDark').classList.toggle('active', m === 'dark');
+      document.getElementById('modeAuto').classList.toggle('active', m === 'auto');
+    }
+    _mq.addEventListener('change', () => { if (_mode === 'auto') _applyDark('auto'); });
+    document.getElementById('modeLight').addEventListener('click', () => setMode('light'));
+    document.getElementById('modeDark').addEventListener('click', () => setMode('dark'));
+    document.getElementById('modeAuto').addEventListener('click', () => setMode('auto'));
+    setMode(_mode);
 
     // Border toggle
     let borderOn = localStorage.getItem('moon-border') === 'on';
