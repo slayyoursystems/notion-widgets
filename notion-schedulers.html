@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schedulers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { background: transparent; }
+
+    :root {
+      --accent:      #337EA9;
+      --accent-text: #fff;
+      --cell-bg:     #E9F3F7;
+      --text:        #1a1a1a;
+      --subtext:     #aaa;
+      --border:      #ebebeb;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 14px 0 14px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    /* ── List ── */
+    .list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 2px;
+    }
+
+    .list::-webkit-scrollbar { width: 3px; }
+    .list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Scheduler row ── */
+    .sc-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      background: var(--cell-bg);
+      border-radius: 5px;
+      transition: opacity 0.15s;
+    }
+
+    .sc-row:hover { opacity: 0.85; }
+    .sc-row:hover .sc-delete { opacity: 1; }
+
+    .sc-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .sc-name {
+      flex: 1;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Icon buttons ── */
+    .sc-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--subtext);
+      padding: 2px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.12s;
+    }
+
+    .sc-btn:hover { color: var(--text); background: rgba(0,0,0,0.06); }
+    .sc-btn svg { display: block; }
+
+    .sc-delete {
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+    }
+
+    /* copy success flash */
+    .sc-copy.copied { color: #448361 !important; }
+
+    .empty {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--subtext);
+      letter-spacing: 0.08em;
+      padding: 24px 0;
+    }
+
+    /* ── Add form ── */
+    .add-form {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 0 4px;
+      flex-shrink: 0;
+    }
+
+    .add-form.open { display: flex; }
+
+    .add-form input {
+      background: var(--cell-bg);
+      border: none;
+      outline: none;
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--text);
+    }
+
+    .add-form input::placeholder { color: var(--subtext); }
+
+    .form-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .form-btn {
+      flex: 1;
+      background: var(--cell-bg);
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--subtext);
+      cursor: pointer;
+      transition: all 0.12s;
+      letter-spacing: 0.05em;
+    }
+
+    .form-btn.primary {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .form-btn:hover { opacity: 0.75; }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0 10px;
+      flex-shrink: 0;
+    }
+
+    .footer-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      color: var(--subtext);
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-size: 13px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .footer-btn:hover { color: var(--text); background: var(--cell-bg); }
+
+    /* ── Popover ── */
+    .popover-wrap { position: relative; }
+
+    .popover {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+      width: 160px;
+    }
+
+    .popover.open { display: block; }
+
+    .popover-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtext);
+      margin-bottom: 8px;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-bottom: 2px;
+    }
+
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: transform 0.12s;
+    }
+
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.active { border-color: #666; }
+
+    .popover-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+    .opt-row { display: flex; gap: 5px; }
+    .opt-btn {
+      flex: 1;
+      background: #f5f5f5;
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 4px 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .opt-btn:hover { background: #eee; }
+    .opt-btn.active { background: #fff; border-color: #ccc; color: #1a1a1a; }
+
+    /* ── Themes ── */
+    .theme-grey   { --accent: #9B9A97; --accent-text: #1a1a1a; --cell-bg: #F1F1EF; }
+    .theme-brown  { --accent: #64473A; --accent-text: #fff;    --cell-bg: #F3EEEE; }
+    .theme-orange { --accent: #D9730D; --accent-text: #fff;    --cell-bg: #F8ECDF; }
+    .theme-yellow { --accent: #CB912F; --accent-text: #1a1a1a; --cell-bg: #FAF3DD; }
+    .theme-green  { --accent: #448361; --accent-text: #fff;    --cell-bg: #EEF3ED; }
+    .theme-blue   { --accent: #337EA9; --accent-text: #fff;    --cell-bg: #E9F3F7; }
+    .theme-purple { --accent: #9065B0; --accent-text: #fff;    --cell-bg: #F6F3F8; }
+    .theme-pink   { --accent: #C14F8A; --accent-text: #fff;    --cell-bg: #F9F2F5; }
+    .theme-red    { --accent: #D44C47; --accent-text: #fff;    --cell-bg: #FAECEC; }
+
+    /* ── Background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      border-radius: 10px;
+      z-index: -1;
+      pointer-events: none;
+    }
+    body.dark::before { background: #000; }
+    body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
+    body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
+
+    /* ── Dark mode ── */
+    body.dark { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a; }
+    body.dark .popover { background: #1e1e1e; border-color: #333; }
+    body.dark .add-form input { color: #e0e0e0; }
+    body.dark .swatch.active { border-color: #ccc; }
+    body.dark .opt-btn { background: #2a2a2a; color: #666; }
+    body.dark .opt-btn:hover { background: #333; }
+    body.dark .opt-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
+    body.dark .sc-btn:hover { background: rgba(255,255,255,0.08); }
+    body.dark .sc-copy.copied { color: #4F9768 !important; }
+
+    body.dark .theme-grey   { --cell-bg: #252525; }
+    body.dark .theme-brown  { --cell-bg: #2E2724; }
+    body.dark .theme-orange { --cell-bg: #36291F; }
+    body.dark .theme-yellow { --cell-bg: #372E20; }
+    body.dark .theme-green  { --cell-bg: #242B26; }
+    body.dark .theme-blue   { --cell-bg: #1F282D; }
+    body.dark .theme-purple { --cell-bg: #2A2430; }
+    body.dark .theme-pink   { --cell-bg: #2E2328; }
+    body.dark .theme-red    { --cell-bg: #332523; }
+  </style>
+</head>
+<body>
+<div id="widget">
+  <div class="header">schedulers</div>
+
+  <div class="list" id="list"></div>
+
+  <div class="add-form" id="addForm">
+    <input type="text" id="nameInput" placeholder="scheduler name" autocomplete="off" />
+    <input type="url"  id="urlInput"  placeholder="public url (https://...)" autocomplete="off" />
+    <input type="text" id="idInput"   placeholder="scheduler id" autocomplete="off" />
+    <div class="form-row">
+      <button class="form-btn" id="cancelBtn">cancel</button>
+      <button class="form-btn primary" id="saveBtn">save</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="footer-btn" id="addBtn">+</button>
+    <div class="popover-wrap">
+      <button class="footer-btn" id="menuBtn" style="font-size:11px;letter-spacing:.05em">···</button>
+      <div class="popover" id="popover">
+        <div class="popover-label">Color</div>
+        <div class="swatch-grid" id="swatchGrid"></div>
+        <div class="popover-divider"></div>
+        <div class="popover-label">Mode</div>
+        <div class="opt-row">
+          <button class="opt-btn" id="modeLight">light</button>
+          <button class="opt-btn" id="modeDark">dark</button>
+          <button class="opt-btn" id="modeAuto">auto</button>
+        </div>
+        <div class="popover-divider"></div>
+        <div class="popover-label">Border</div>
+        <div class="opt-row">
+          <button class="opt-btn" id="borderOff">off</button>
+          <button class="opt-btn" id="borderOn">on</button>
+        </div>
+      </div>
+    </div>
+    <div style="width:37px"></div>
+  </div>
+</div>
+
+<script>
+  // ── SVG icons ────────────────────────────────────────────────────────────
+  const ICON_COPY = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+  </svg>`;
+
+  const ICON_CHECK = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>`;
+
+  const ICON_SETTINGS = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  </svg>`;
+
+  const ICON_DELETE = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>`;
+
+  // ── Data ─────────────────────────────────────────────────────────────────
+  const THEMES = [
+    {name:'grey',color:'#9B9A97'},{name:'brown',color:'#64473A'},
+    {name:'orange',color:'#D9730D'},{name:'yellow',color:'#CB912F'},
+    {name:'green',color:'#448361'},{name:'blue',color:'#337EA9'},
+    {name:'purple',color:'#9065B0'},{name:'pink',color:'#C14F8A'},
+    {name:'red',color:'#D44C47'}
+  ];
+
+  const MOXIE_BASE = 'https://create.withmoxie.com/meetings/schedulers#';
+
+  const DEFAULT_SCHEDULERS = [];
+
+  const widget  = document.getElementById('widget');
+  const popover = document.getElementById('popover');
+  const menuBtn = document.getElementById('menuBtn');
+  const addBtn  = document.getElementById('addBtn');
+  const addForm = document.getElementById('addForm');
+
+  let activeTheme = localStorage.getItem('mx-theme') || 'blue';
+  let schedulers  = JSON.parse(localStorage.getItem('mx-list') || 'null') || DEFAULT_SCHEDULERS;
+
+  widget.classList.add(`theme-${activeTheme}`);
+
+  // ── Render list ──────────────────────────────────────────────────────────
+  function render() {
+    const list = document.getElementById('list');
+    if (!schedulers.length) {
+      list.innerHTML = '<div class="empty">no schedulers yet</div>';
+      return;
+    }
+    list.innerHTML = '';
+    schedulers.forEach((sc, i) => {
+      const row = document.createElement('div');
+      row.className = 'sc-row';
+      row.innerHTML = `
+        <div class="sc-dot"></div>
+        <span class="sc-name" title="${sc.name}">${sc.name}</span>
+        <button class="sc-btn sc-copy" title="Copy public URL" data-url="${sc.url}">${ICON_COPY}</button>
+        <a class="sc-btn sc-settings" href="${MOXIE_BASE}${sc.id}" target="_blank" rel="noopener" title="Open in Moxie">${ICON_SETTINGS}</a>
+        <button class="sc-btn sc-delete" title="Delete" data-i="${i}">${ICON_DELETE}</button>
+      `;
+
+      // Copy button
+      row.querySelector('.sc-copy').addEventListener('click', e => {
+        e.stopPropagation();
+        const btn = e.currentTarget;
+        navigator.clipboard.writeText(sc.url).then(() => {
+          btn.innerHTML = ICON_CHECK;
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = ICON_COPY;
+            btn.classList.remove('copied');
+          }, 1500);
+        });
+      });
+
+      // Delete button
+      row.querySelector('.sc-delete').addEventListener('click', e => {
+        e.stopPropagation();
+        schedulers.splice(i, 1);
+        localStorage.setItem('mx-list', JSON.stringify(schedulers));
+        render();
+      });
+
+      list.appendChild(row);
+    });
+  }
+
+  // ── Swatches ─────────────────────────────────────────────────────────────
+  THEMES.forEach(t => {
+    const dot = document.createElement('div');
+    dot.className = 'swatch' + (t.name === activeTheme ? ' active' : '');
+    dot.style.background = t.color;
+    dot.title = t.name;
+    dot.addEventListener('click', () => {
+      widget.classList.remove(`theme-${activeTheme}`);
+      activeTheme = t.name;
+      widget.classList.add(`theme-${activeTheme}`);
+      localStorage.setItem('mx-theme', activeTheme);
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      dot.classList.add('active');
+      popover.classList.remove('open');
+    });
+    document.getElementById('swatchGrid').appendChild(dot);
+  });
+
+  // ── Add form ─────────────────────────────────────────────────────────────
+  addBtn.addEventListener('click', () => {
+    addForm.classList.toggle('open');
+    if (addForm.classList.contains('open')) document.getElementById('nameInput').focus();
+  });
+
+  function clearForm() {
+    addForm.classList.remove('open');
+    document.getElementById('nameInput').value = '';
+    document.getElementById('urlInput').value  = '';
+    document.getElementById('idInput').value   = '';
+  }
+
+  document.getElementById('cancelBtn').addEventListener('click', clearForm);
+
+  function save() {
+    const name = document.getElementById('nameInput').value.trim();
+    let   url  = document.getElementById('urlInput').value.trim();
+    const id   = document.getElementById('idInput').value.trim();
+    if (!name || !url) return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    schedulers.push({ name, url, id });
+    localStorage.setItem('mx-list', JSON.stringify(schedulers));
+    render();
+    clearForm();
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', save);
+  document.getElementById('idInput').addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+
+  // ── Popover ───────────────────────────────────────────────────────────────
+  menuBtn.addEventListener('click', e => { e.stopPropagation(); popover.classList.toggle('open'); });
+  document.addEventListener('click', () => popover.classList.remove('open'));
+  popover.addEventListener('click', e => e.stopPropagation());
+
+  // ── Mode (light / dark / auto) ────────────────────────────────────────────
+  const _mq = window.matchMedia('(prefers-color-scheme: dark)');
+  let _mode = localStorage.getItem('mx-dark') || 'auto';
+  if (_mode === 'on')  _mode = 'dark';
+  if (_mode === 'off') _mode = 'light';
+
+  function _applyDark(m) {
+    document.body.classList.toggle('dark', m === 'dark' || (m === 'auto' && _mq.matches));
+  }
+  function setMode(m) {
+    _mode = m; localStorage.setItem('mx-dark', m); _applyDark(m);
+    document.getElementById('modeLight').classList.toggle('active', m === 'light');
+    document.getElementById('modeDark').classList.toggle('active', m === 'dark');
+    document.getElementById('modeAuto').classList.toggle('active', m === 'auto');
+  }
+  _mq.addEventListener('change', () => { if (_mode === 'auto') _applyDark('auto'); });
+  document.getElementById('modeLight').addEventListener('click', () => setMode('light'));
+  document.getElementById('modeDark').addEventListener('click', () => setMode('dark'));
+  document.getElementById('modeAuto').addEventListener('click', () => setMode('auto'));
+  setMode(_mode);
+
+  // ── Border ────────────────────────────────────────────────────────────────
+  let borderOn = localStorage.getItem('mx-border') === 'on';
+  function setBorder(on) {
+    borderOn = on;
+    localStorage.setItem('mx-border', on ? 'on' : 'off');
+    document.body.classList.toggle('border-on', on);
+    document.getElementById('borderOff').classList.toggle('active', !on);
+    document.getElementById('borderOn').classList.toggle('active', on);
+  }
+  document.getElementById('borderOff').addEventListener('click', () => setBorder(false));
+  document.getElementById('borderOn').addEventListener('click', () => setBorder(true));
+  setBorder(borderOn);
+
+  render();
+</script>
+</body>
+</html>
