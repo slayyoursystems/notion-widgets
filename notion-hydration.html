@@ -486,13 +486,6 @@
 
     <!-- Log buttons -->
     <div class="log-row">
-      <button class="log-btn" id="subIncrementBtn">
-        <!-- minus -->
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        <span id="subLabel">16 oz</span>
-      </button>
       <button class="log-btn primary" id="logIncrementBtn">
         <!-- water drop -->
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -507,6 +500,14 @@
         </svg>
         custom
       </button>
+      <button class="log-btn" id="logUndoBtn">
+        <!-- undo arrow -->
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 14 4 9 9 4"/>
+          <path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+        </svg>
+        undo
+      </button>
     </div>
 
     <!-- Custom input panel -->
@@ -514,9 +515,18 @@
       <input type="number" id="customOzInput" placeholder="how many oz?" min="1" max="500" />
       <div class="form-row">
         <button class="form-btn" id="customCancelBtn">cancel</button>
-        <button class="form-btn" id="customSubBtn">− remove</button>
         <button class="form-btn primary" id="customLogBtn">+ add</button>
       </div>
+    </div>
+
+    <!-- Undo panel -->
+    <div class="custom-panel" id="undoPanel">
+      <button class="form-btn" id="undoIncrementBtn" style="width:100%;margin-bottom:6px">− <span id="undoIncrLabel">16</span> oz (full increment)</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="number" id="undoOzInput" placeholder="custom oz" min="1" max="500" style="flex:1;margin:0" />
+        <button class="form-btn" id="undoCustomSubBtn" style="white-space:nowrap">− remove</button>
+      </div>
+      <button class="form-btn" id="undoCancelBtn" style="width:100%;margin-top:6px">cancel</button>
     </div>
 
     <!-- Calendar -->
@@ -539,8 +549,7 @@
 
   <!-- Footer -->
   <div class="footer">
-    <button class="footer-btn" id="undoBtn" title="Undo last log" style="font-size:11px;letter-spacing:.02em">↩</button>
-    <div class="popover-wrap">
+<div class="popover-wrap">
       <button class="footer-btn" id="menuBtn" style="font-size:11px;letter-spacing:.05em">···</button>
       <div class="popover" id="popover">
 
@@ -624,7 +633,6 @@
   try { history = JSON.parse(localStorage.getItem('h2o-history') || '{}'); }
   catch(e) {}
 
-  let logStack = [];         // undo stack
   let calView  = new Date(); // month shown in calendar
   let lastBehindAlert = 0;
 
@@ -718,7 +726,6 @@
     const prev = todayOz();
     const next = Math.min(prev + oz, settings.goalOz * 2);
     setTodayOz(next);
-    logStack.push(oz);
     playTone('log');
     // Check for newly crossed milestones
     getMilestones().forEach(ms => {
@@ -727,11 +734,6 @@
     render();
   }
 
-  function undoLast() {
-    if (!logStack.length) return;
-    setTodayOz(Math.max(0, todayOz() - logStack.pop()));
-    render();
-  }
 
   // ── Behind alert ─────────────────────────────────────────────────────────
   function checkBehind() {
@@ -849,8 +851,8 @@
     renderBars();
     renderTicks();
     renderCalendar();
-    document.getElementById('logLabel').textContent = `+${settings.incrementOz} oz`;
-    document.getElementById('subLabel').textContent = `${settings.incrementOz} oz`;
+    document.getElementById('logLabel').textContent     = `+${settings.incrementOz} oz`;
+    document.getElementById('undoIncrLabel').textContent = `${settings.incrementOz}`;
     // Sync settings inputs
     document.getElementById('settingStart').value =
       `${String(settings.startHour).padStart(2,'0')}:${String(settings.startMin).padStart(2,'0')}`;
@@ -866,7 +868,7 @@
   function scheduleMidnight() {
     const now = new Date();
     const ms  = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 3) - now;
-    setTimeout(() => { logStack=[]; calView=new Date(); render(); scheduleMidnight(); }, ms);
+    setTimeout(() => { calView=new Date(); render(); scheduleMidnight(); }, ms);
   }
 
   // ── Themes / swatches ────────────────────────────────────────────────────
@@ -892,46 +894,65 @@
 
   // ── Log buttons ──────────────────────────────────────────────────────────
   document.getElementById('logIncrementBtn').addEventListener('click', () => logWater(settings.incrementOz));
-  document.getElementById('subIncrementBtn').addEventListener('click', () => {
-    const next = Math.max(0, todayOz() - settings.incrementOz);
-    setTodayOz(next);
-    render();
-  });
 
   const customPanel = document.getElementById('customPanel');
-  document.getElementById('logCustomBtn').addEventListener('click', () => {
-    customPanel.classList.toggle('open');
-    if (customPanel.classList.contains('open'))
-      document.getElementById('customOzInput').focus();
-  });
-  document.getElementById('customCancelBtn').addEventListener('click', () => {
+  const undoPanel   = document.getElementById('undoPanel');
+
+  function closeAllPanels() {
     customPanel.classList.remove('open');
+    undoPanel.classList.remove('open');
     document.getElementById('customOzInput').value = '';
+    document.getElementById('undoOzInput').value   = '';
+  }
+
+  document.getElementById('logCustomBtn').addEventListener('click', () => {
+    const opening = !customPanel.classList.contains('open');
+    closeAllPanels();
+    if (opening) {
+      customPanel.classList.add('open');
+      document.getElementById('customOzInput').focus();
+    }
   });
+  document.getElementById('customCancelBtn').addEventListener('click', closeAllPanels);
   function logCustom() {
     const oz = parseFloat(document.getElementById('customOzInput').value);
     if (!oz || oz <= 0) return;
     logWater(oz);
-    customPanel.classList.remove('open');
-    document.getElementById('customOzInput').value = '';
+    closeAllPanels();
   }
   document.getElementById('customLogBtn').addEventListener('click', logCustom);
-  function subtractCustom() {
-    const oz = parseFloat(document.getElementById('customOzInput').value);
+  document.getElementById('customOzInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter')  logCustom();
+    if (e.key === 'Escape') closeAllPanels();
+  });
+
+  // ── Undo panel ────────────────────────────────────────────────────────────
+  document.getElementById('logUndoBtn').addEventListener('click', () => {
+    const opening = !undoPanel.classList.contains('open');
+    closeAllPanels();
+    if (opening) {
+      undoPanel.classList.add('open');
+      document.getElementById('undoOzInput').focus();
+    }
+  });
+  document.getElementById('undoCancelBtn').addEventListener('click', closeAllPanels);
+  document.getElementById('undoIncrementBtn').addEventListener('click', () => {
+    setTodayOz(Math.max(0, todayOz() - settings.incrementOz));
+    render();
+    closeAllPanels();
+  });
+  function undoCustom() {
+    const oz = parseFloat(document.getElementById('undoOzInput').value);
     if (!oz || oz <= 0) return;
     setTodayOz(Math.max(0, todayOz() - oz));
     render();
-    customPanel.classList.remove('open');
-    document.getElementById('customOzInput').value = '';
+    closeAllPanels();
   }
-  document.getElementById('customSubBtn').addEventListener('click', subtractCustom);
-  document.getElementById('customOzInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter')  logCustom();
-    if (e.key === 'Escape') document.getElementById('customCancelBtn').click();
+  document.getElementById('undoCustomSubBtn').addEventListener('click', undoCustom);
+  document.getElementById('undoOzInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter')  undoCustom();
+    if (e.key === 'Escape') closeAllPanels();
   });
-
-  // ── Undo ─────────────────────────────────────────────────────────────────
-  document.getElementById('undoBtn').addEventListener('click', undoLast);
 
   // ── Settings ─────────────────────────────────────────────────────────────
   document.getElementById('applySettings').addEventListener('click', () => {
@@ -944,7 +965,6 @@
     settings.goalOz      = g;
     settings.incrementOz = inc;
     localStorage.setItem('h2o-settings', JSON.stringify(settings));
-    logStack = [];
     popover.classList.remove('open');
     render();
   });
