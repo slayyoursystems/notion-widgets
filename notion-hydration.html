@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hydration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { background: transparent; }
+
+    :root {
+      --accent:      #337EA9;
+      --accent-text: #fff;
+      --cell-bg:     #E9F3F7;
+      --text:        #1a1a1a;
+      --subtext:     #aaa;
+      --border:      #ebebeb;
+      --c-good:      #487CA5;
+      --c-warn:      #C29343;
+      --c-late:      #CC782F;
+      --c-crit:      #B35488;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 14px 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 14px;
+      flex-shrink: 0;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 2px;
+      padding-bottom: 6px;
+    }
+    .content::-webkit-scrollbar { width: 3px; }
+    .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Progress bars ── */
+    .bar-group { display: flex; flex-direction: column; gap: 4px; }
+
+    .bar-meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .bar-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtext);
+    }
+
+    .bar-value {
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--text);
+    }
+
+    .bar-track {
+      position: relative;
+      border-radius: 5px;
+      background: var(--cell-bg);
+      overflow: visible;
+    }
+
+    .bar-track.ideal-track { height: 8px; }
+    .bar-track.actual-track { height: 12px; overflow: hidden; border-radius: 5px; }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.6s ease, background-color 0.4s ease;
+      min-width: 0;
+    }
+
+    .ideal-fill  { background: var(--accent); border-radius: 5px; }
+    .actual-fill { border-radius: 5px; }
+    .actual-fill.good { background: var(--c-good); }
+    .actual-fill.warn { background: var(--c-warn); }
+    .actual-fill.late { background: var(--c-late); }
+    .actual-fill.crit { background: var(--c-crit); }
+
+    /* Milestone ticks below ideal bar */
+    .tick-row {
+      position: relative;
+      height: 13px;
+      margin-top: 1px;
+    }
+
+    .tick-mark {
+      position: absolute;
+      top: 0;
+      height: 4px;
+      width: 1px;
+      background: var(--border);
+      transform: translateX(-50%);
+    }
+
+    .tick-lbl {
+      position: absolute;
+      top: 5px;
+      font-size: 8px;
+      font-weight: 300;
+      color: var(--subtext);
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .tick-lbl.last { transform: translateX(-100%); }
+
+    /* ── Log buttons ── */
+    .log-row {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .log-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: var(--cell-bg);
+      border: 1.5px solid transparent;
+      border-radius: 6px;
+      padding: 9px 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--text);
+      cursor: pointer;
+      transition: opacity 0.12s;
+      letter-spacing: 0.04em;
+    }
+
+    .log-btn:hover { opacity: 0.7; }
+    .log-btn.primary { border-color: var(--accent); }
+
+    /* ── Custom amount panel ── */
+    .custom-panel {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .custom-panel.open { display: flex; }
+
+    .custom-panel input {
+      background: var(--cell-bg);
+      border: none;
+      outline: none;
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--text);
+      width: 100%;
+    }
+    .custom-panel input::placeholder { color: var(--subtext); }
+
+    .form-row { display: flex; gap: 6px; }
+
+    .form-btn {
+      flex: 1;
+      background: var(--cell-bg);
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--subtext);
+      cursor: pointer;
+      transition: opacity 0.12s;
+    }
+    .form-btn.primary { border-color: var(--accent); color: var(--accent); }
+    .form-btn:hover { opacity: 0.75; }
+
+    /* ── Calendar ── */
+    .cal-section { flex-shrink: 0; }
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .cal-title {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtext);
+    }
+
+    .cal-nav {
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: 'Inter', sans-serif;
+      transition: color 0.15s;
+    }
+    .cal-nav:hover { color: var(--text); }
+    .cal-nav:disabled { opacity: 0.3; cursor: default; }
+
+    .cal-dow {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 3px;
+    }
+    .cal-dow-cell {
+      font-size: 7px;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--subtext);
+      text-align: center;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 300;
+      color: var(--text);
+    }
+
+    .cal-day.today { outline: 1.5px solid var(--accent); outline-offset: -1px; }
+    .cal-day.future { opacity: 0.3; }
+
+    .cal-day.perf-good { background: #E9F3F7; color: #487CA5; font-weight: 400; }
+    .cal-day.perf-warn { background: #FAF3DD; color: #C29343; font-weight: 400; }
+    .cal-day.perf-late { background: #F8ECDF; color: #CC782F; font-weight: 400; }
+    .cal-day.perf-crit { background: #F9F2F5; color: #B35488; font-weight: 400; }
+
+    body.dark .cal-day.perf-good { background: #1F282D; color: #447ACB; }
+    body.dark .cal-day.perf-warn { background: #372E20; color: #C19138; }
+    body.dark .cal-day.perf-late { background: #36291F; color: #CB7B37; }
+    body.dark .cal-day.perf-crit { background: #2E2328; color: #BA4A78; }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0 10px;
+      flex-shrink: 0;
+    }
+
+    .footer-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      color: var(--subtext);
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-size: 13px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .footer-btn:hover { color: var(--text); background: var(--cell-bg); }
+
+    /* ── Popover ── */
+    .popover-wrap { position: relative; }
+
+    .popover {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+      width: 196px;
+    }
+    .popover.open { display: block; }
+
+    .popover-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtext);
+      margin-bottom: 8px;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-bottom: 2px;
+    }
+
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: transform 0.12s;
+    }
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.active { border-color: #666; }
+
+    .popover-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+    .opt-row { display: flex; gap: 4px; }
+    .opt-btn {
+      flex: 1;
+      background: #f5f5f5;
+      border: 1.5px solid transparent;
+      border-radius: 5px;
+      padding: 4px 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: #999;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .opt-btn:hover { background: #eee; }
+    .opt-btn.active { background: #fff; border-color: #ccc; color: #1a1a1a; }
+
+    /* Settings rows */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .setting-row span {
+      font-size: 9px;
+      font-weight: 300;
+      color: var(--subtext);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      min-width: 52px;
+    }
+    .setting-input {
+      background: #f5f5f5;
+      border: 1px solid #ebebeb;
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      color: #1a1a1a;
+      flex: 1;
+      outline: none;
+      min-width: 0;
+    }
+    .setting-input:focus { border-color: #bbb; }
+
+    /* ── Themes ── */
+    .theme-grey   { --accent: #9B9A97; --accent-text: #1a1a1a; --cell-bg: #F1F1EF; }
+    .theme-brown  { --accent: #64473A; --accent-text: #fff;    --cell-bg: #F3EEEE; }
+    .theme-orange { --accent: #D9730D; --accent-text: #fff;    --cell-bg: #F8ECDF; }
+    .theme-yellow { --accent: #CB912F; --accent-text: #1a1a1a; --cell-bg: #FAF3DD; }
+    .theme-green  { --accent: #448361; --accent-text: #fff;    --cell-bg: #EEF3ED; }
+    .theme-blue   { --accent: #337EA9; --accent-text: #fff;    --cell-bg: #E9F3F7; }
+    .theme-purple { --accent: #9065B0; --accent-text: #fff;    --cell-bg: #F6F3F8; }
+    .theme-pink   { --accent: #C14F8A; --accent-text: #fff;    --cell-bg: #F9F2F5; }
+    .theme-red    { --accent: #D44C47; --accent-text: #fff;    --cell-bg: #FAECEC; }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      border-radius: 10px;
+      z-index: -1;
+      pointer-events: none;
+    }
+    body.dark::before { background: #000; }
+    body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
+    body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
+
+    body.dark {
+      --text: #e0e0e0;
+      --subtext: #555;
+      --border: #2a2a2a;
+      --c-good: #447ACB;
+      --c-warn: #C19138;
+      --c-late: #CB7B37;
+      --c-crit: #BA4A78;
+    }
+    body.dark .popover   { background: #1e1e1e; border-color: #333; }
+    body.dark .swatch.active { border-color: #ccc; }
+    body.dark .opt-btn   { background: #2a2a2a; color: #666; }
+    body.dark .opt-btn:hover { background: #333; }
+    body.dark .opt-btn.active { background: #1e1e1e; border-color: #555; color: #e0e0e0; }
+    body.dark .setting-input { background: #2a2a2a; border-color: #333; color: #ddd; }
+    body.dark .setting-input:focus { border-color: #555; }
+    body.dark .custom-panel input { color: #e0e0e0; }
+
+    body.dark .theme-grey   { --cell-bg: #252525; }
+    body.dark .theme-brown  { --cell-bg: #2E2724; }
+    body.dark .theme-orange { --cell-bg: #36291F; }
+    body.dark .theme-yellow { --cell-bg: #372E20; }
+    body.dark .theme-green  { --cell-bg: #242B26; }
+    body.dark .theme-blue   { --cell-bg: #1F282D; }
+    body.dark .theme-purple { --cell-bg: #2A2430; }
+    body.dark .theme-pink   { --cell-bg: #2E2328; }
+    body.dark .theme-red    { --cell-bg: #332523; }
+  </style>
+</head>
+<body>
+<div id="widget">
+  <div class="header">hydration</div>
+
+  <div class="content">
+
+    <!-- Ideal bar -->
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">ideal</span>
+        <span class="bar-value" id="idealValue">— oz</span>
+      </div>
+      <div class="bar-track ideal-track">
+        <div class="bar-fill ideal-fill" id="idealFill" style="width:0%"></div>
+      </div>
+      <div class="tick-row" id="tickRow"></div>
+    </div>
+
+    <!-- Actual bar -->
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">actual</span>
+        <span class="bar-value" id="actualValue">0 oz</span>
+      </div>
+      <div class="bar-track actual-track">
+        <div class="bar-fill actual-fill good" id="actualFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Log buttons -->
+    <div class="log-row">
+      <button class="log-btn primary" id="logIncrementBtn">
+        <!-- water drop -->
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+        <span id="logLabel">+16 oz</span>
+      </button>
+      <button class="log-btn" id="logCustomBtn">
+        <!-- pencil -->
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+        </svg>
+        custom
+      </button>
+    </div>
+
+    <!-- Custom input panel -->
+    <div class="custom-panel" id="customPanel">
+      <input type="number" id="customOzInput" placeholder="how many oz?" min="1" max="500" />
+      <div class="form-row">
+        <button class="form-btn" id="customCancelBtn">cancel</button>
+        <button class="form-btn primary" id="customLogBtn">log</button>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="cal-section">
+      <div class="cal-header">
+        <button class="cal-nav" id="calPrev">«</button>
+        <span class="cal-title" id="calTitle"></span>
+        <button class="cal-nav" id="calNext">»</button>
+      </div>
+      <div class="cal-dow" id="calDow"></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Footer -->
+  <div class="footer">
+    <button class="footer-btn" id="undoBtn" title="Undo last log" style="font-size:11px;letter-spacing:.02em">↩</button>
+    <div class="popover-wrap">
+      <button class="footer-btn" id="menuBtn" style="font-size:11px;letter-spacing:.05em">···</button>
+      <div class="popover" id="popover">
+
+        <div class="popover-label">Color</div>
+        <div class="swatch-grid" id="swatchGrid"></div>
+
+        <div class="popover-divider"></div>
+        <div class="popover-label">Mode</div>
+        <div class="opt-row">
+          <button class="opt-btn" id="modeLight">light</button>
+          <button class="opt-btn" id="modeDark">dark</button>
+          <button class="opt-btn" id="modeAuto">auto</button>
+        </div>
+
+        <div class="popover-divider"></div>
+        <div class="popover-label">Border</div>
+        <div class="opt-row">
+          <button class="opt-btn" id="borderOff">off</button>
+          <button class="opt-btn" id="borderOn">on</button>
+        </div>
+
+        <div class="popover-divider"></div>
+        <div class="popover-label">Hydration</div>
+
+        <div class="setting-row">
+          <span>Start</span>
+          <input type="time" id="settingStart" class="setting-input" />
+        </div>
+        <div class="setting-row">
+          <span>End</span>
+          <input type="time" id="settingEnd" class="setting-input" />
+        </div>
+        <div class="setting-row">
+          <span>Goal oz</span>
+          <input type="number" id="settingGoal" class="setting-input" min="8" max="500" />
+        </div>
+        <div class="setting-row">
+          <span>Log size</span>
+          <input type="number" id="settingIncrement" class="setting-input" min="1" max="200" />
+        </div>
+        <div class="setting-row">
+          <span>Sound</span>
+          <div class="opt-row" style="flex:1">
+            <button class="opt-btn" id="soundOff">off</button>
+            <button class="opt-btn" id="soundOn">on</button>
+          </div>
+        </div>
+        <button class="form-btn primary" id="applySettings" style="width:100%;margin-top:6px">apply</button>
+
+      </div>
+    </div>
+    <div style="width:37px"></div>
+  </div>
+
+</div><!-- /widget -->
+
+<script>
+  // ── Themes ───────────────────────────────────────────────────────────────
+  const THEMES = [
+    {name:'grey',color:'#9B9A97'},{name:'brown',color:'#64473A'},
+    {name:'orange',color:'#D9730D'},{name:'yellow',color:'#CB912F'},
+    {name:'green',color:'#448361'},{name:'blue',color:'#337EA9'},
+    {name:'purple',color:'#9065B0'},{name:'pink',color:'#C14F8A'},
+    {name:'red',color:'#D44C47'}
+  ];
+
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const DOW    = ['S','M','T','W','T','F','S'];
+
+  // ── Default settings ─────────────────────────────────────────────────────
+  const DEFAULTS = { startHour:7, startMin:30, endHour:21, endMin:15,
+                     goalOz:96, incrementOz:16, soundOn:true };
+
+  let settings = {...DEFAULTS};
+  try { Object.assign(settings, JSON.parse(localStorage.getItem('h2o-settings') || '{}')); }
+  catch(e) {}
+
+  // ── History (keyed by "YYYY-MM-DD") ─────────────────────────────────────
+  let history = {};
+  try { history = JSON.parse(localStorage.getItem('h2o-history') || '{}'); }
+  catch(e) {}
+
+  let logStack = [];         // undo stack
+  let calView  = new Date(); // month shown in calendar
+  let lastBehindAlert = 0;
+
+  const widget  = document.getElementById('widget');
+  const popover = document.getElementById('popover');
+  const menuBtn = document.getElementById('menuBtn');
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function dateKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function todayOz()        { return parseFloat(history[dateKey(new Date())] || 0) || 0; }
+  function setTodayOz(oz)   {
+    history[dateKey(new Date())] = oz;
+    localStorage.setItem('h2o-history', JSON.stringify(history));
+  }
+
+  // ── Milestones ───────────────────────────────────────────────────────────
+  function getMilestones() {
+    const s = settings.startHour * 60 + settings.startMin;
+    const e = settings.endHour   * 60 + settings.endMin;
+    const n = Math.max(2, Math.ceil(settings.goalOz / settings.incrementOz));
+    const step = (e - s) / (n - 1);
+    return Array.from({length: n}, (_, i) => ({
+      oz:      Math.min((i + 1) * settings.incrementOz, settings.goalOz),
+      timeMin: s + i * step
+    }));
+  }
+
+  // ── Ideal oz at current time ─────────────────────────────────────────────
+  function idealNow() {
+    const now = new Date();
+    const cur = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    const s   = settings.startHour * 60 + settings.startMin;
+    const e   = settings.endHour   * 60 + settings.endMin;
+    if (cur <= s) return 0;
+    if (cur >= e) return settings.goalOz;
+    return ((cur - s) / (e - s)) * settings.goalOz;
+  }
+
+  // ── Status ───────────────────────────────────────────────────────────────
+  function getStatus(actual) {
+    const deficit = idealNow() - actual;
+    const inc     = settings.incrementOz;
+    if (deficit <= 0)      return 'good';
+    if (deficit <= inc)    return 'warn';
+    if (deficit <= inc*2)  return 'late';
+    return 'crit';
+  }
+
+  // ── Sound ────────────────────────────────────────────────────────────────
+  function playTone(type) {
+    if (!settings.soundOn) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (type === 'milestone') {
+        [[523,0],[659,0.13],[784,0.26]].forEach(([f,d]) => {
+          const o=ctx.createOscillator(), g=ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type='sine'; o.frequency.value=f;
+          const t=ctx.currentTime+d;
+          g.gain.setValueAtTime(0,t);
+          g.gain.linearRampToValueAtTime(0.18,t+0.03);
+          g.gain.exponentialRampToValueAtTime(0.001,t+0.45);
+          o.start(t); o.stop(t+0.5);
+        });
+      } else if (type === 'log') {
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type='sine'; o.frequency.value=660;
+        g.gain.setValueAtTime(0.15, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.18);
+        o.start(ctx.currentTime); o.stop(ctx.currentTime+0.2);
+      } else if (type === 'behind') {
+        [[440,0],[370,0.2]].forEach(([f,d]) => {
+          const o=ctx.createOscillator(), g=ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type='sine'; o.frequency.value=f;
+          const t=ctx.currentTime+d;
+          g.gain.setValueAtTime(0,t);
+          g.gain.linearRampToValueAtTime(0.12,t+0.03);
+          g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+          o.start(t); o.stop(t+0.4);
+        });
+      }
+    } catch(e) {}
+  }
+
+  // ── Log water ────────────────────────────────────────────────────────────
+  function logWater(oz) {
+    const prev = todayOz();
+    const next = Math.min(prev + oz, settings.goalOz * 2);
+    setTodayOz(next);
+    logStack.push(oz);
+    playTone('log');
+    // Check for newly crossed milestones
+    getMilestones().forEach(ms => {
+      if (prev < ms.oz && next >= ms.oz) setTimeout(() => playTone('milestone'), 200);
+    });
+    render();
+  }
+
+  function undoLast() {
+    if (!logStack.length) return;
+    setTodayOz(Math.max(0, todayOz() - logStack.pop()));
+    render();
+  }
+
+  // ── Behind alert ─────────────────────────────────────────────────────────
+  function checkBehind() {
+    const status = getStatus(todayOz());
+    const now    = Date.now();
+    const curMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const s = settings.startHour * 60 + settings.startMin;
+    const e = settings.endHour   * 60 + settings.endMin;
+    if ((status === 'late' || status === 'crit') &&
+        now - lastBehindAlert > 30 * 60 * 1000 &&
+        curMin >= s && curMin <= e) {
+      playTone('behind');
+      lastBehindAlert = now;
+    }
+  }
+
+  // ── Render bars ──────────────────────────────────────────────────────────
+  function renderBars() {
+    const actual = todayOz();
+    const ideal  = idealNow();
+    const goal   = settings.goalOz;
+    const status = getStatus(actual);
+
+    document.getElementById('idealFill').style.width = Math.min(100, (ideal/goal)*100) + '%';
+    document.getElementById('idealValue').textContent = `${Math.round(ideal)} oz`;
+
+    const af = document.getElementById('actualFill');
+    af.style.width = Math.min(100, (actual/goal)*100) + '%';
+    af.className = `bar-fill actual-fill ${status}`;
+    document.getElementById('actualValue').textContent =
+      actual === 0 ? '0 oz' : `${actual} / ${goal} oz`;
+  }
+
+  // ── Render ticks ─────────────────────────────────────────────────────────
+  function renderTicks() {
+    const row  = document.getElementById('tickRow');
+    row.innerHTML = '';
+    const mss  = getMilestones();
+    const goal = settings.goalOz;
+    mss.forEach((ms, i) => {
+      const pct  = (ms.oz / goal) * 100;
+      const last = i === mss.length - 1;
+
+      const tick = document.createElement('div');
+      tick.className = 'tick-mark';
+      tick.style.left = pct + '%';
+      row.appendChild(tick);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'tick-lbl' + (last ? ' last' : '');
+      lbl.style.left = pct + '%';
+      lbl.textContent = ms.oz;
+      row.appendChild(lbl);
+    });
+  }
+
+  // ── Render calendar ──────────────────────────────────────────────────────
+  function renderCalendar() {
+    const today = new Date();
+    const yr    = calView.getFullYear();
+    const mo    = calView.getMonth();
+
+    document.getElementById('calTitle').textContent =
+      `${MONTHS[mo].slice(0,3).toUpperCase()} ${yr}`;
+
+    // Disable next if on current month
+    const isCurrentMonth = yr === today.getFullYear() && mo === today.getMonth();
+    document.getElementById('calNext').disabled = isCurrentMonth;
+
+    const dowEl = document.getElementById('calDow');
+    dowEl.innerHTML = '';
+    DOW.forEach(d => {
+      const c = document.createElement('div');
+      c.className = 'cal-dow-cell';
+      c.textContent = d;
+      dowEl.appendChild(c);
+    });
+
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    const firstDow   = new Date(yr, mo, 1).getDay();
+    const daysInMo   = new Date(yr, mo + 1, 0).getDate();
+
+    for (let i = 0; i < firstDow; i++) {
+      grid.appendChild(Object.assign(document.createElement('div'), {className:'cal-day'}));
+    }
+
+    for (let d = 1; d <= daysInMo; d++) {
+      const cell    = document.createElement('div');
+      const dateStr = `${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const cellDate = new Date(yr, mo, d);
+      const isToday  = yr === today.getFullYear() && mo === today.getMonth() && d === today.getDate();
+      const isFuture = cellDate > today;
+
+      cell.className  = 'cal-day';
+      cell.textContent = d;
+
+      if (isToday)  cell.classList.add('today');
+      if (isFuture) { cell.classList.add('future'); }
+      else if (history[dateStr] !== undefined) {
+        const pct = parseFloat(history[dateStr]) / settings.goalOz;
+        if      (pct >= 0.9)  cell.classList.add('perf-good');
+        else if (pct >= 0.75) cell.classList.add('perf-warn');
+        else if (pct >= 0.5)  cell.classList.add('perf-late');
+        else if (pct > 0)     cell.classList.add('perf-crit');
+      }
+
+      grid.appendChild(cell);
+    }
+  }
+
+  // ── Full render ──────────────────────────────────────────────────────────
+  function render() {
+    renderBars();
+    renderTicks();
+    renderCalendar();
+    document.getElementById('logLabel').textContent = `+${settings.incrementOz} oz`;
+    // Sync settings inputs
+    document.getElementById('settingStart').value =
+      `${String(settings.startHour).padStart(2,'0')}:${String(settings.startMin).padStart(2,'0')}`;
+    document.getElementById('settingEnd').value =
+      `${String(settings.endHour).padStart(2,'0')}:${String(settings.endMin).padStart(2,'0')}`;
+    document.getElementById('settingGoal').value      = settings.goalOz;
+    document.getElementById('settingIncrement').value = settings.incrementOz;
+    document.getElementById('soundOff').classList.toggle('active', !settings.soundOn);
+    document.getElementById('soundOn').classList.toggle('active',   settings.soundOn);
+  }
+
+  // ── Midnight reset ───────────────────────────────────────────────────────
+  function scheduleMidnight() {
+    const now = new Date();
+    const ms  = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 3) - now;
+    setTimeout(() => { logStack=[]; calView=new Date(); render(); scheduleMidnight(); }, ms);
+  }
+
+  // ── Themes / swatches ────────────────────────────────────────────────────
+  let activeTheme = localStorage.getItem('h2o-theme') || 'blue';
+  widget.classList.add(`theme-${activeTheme}`);
+
+  THEMES.forEach(t => {
+    const dot = document.createElement('div');
+    dot.className = 'swatch' + (t.name === activeTheme ? ' active' : '');
+    dot.style.background = t.color;
+    dot.title = t.name;
+    dot.addEventListener('click', () => {
+      widget.classList.remove(`theme-${activeTheme}`);
+      activeTheme = t.name;
+      widget.classList.add(`theme-${activeTheme}`);
+      localStorage.setItem('h2o-theme', activeTheme);
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      dot.classList.add('active');
+      popover.classList.remove('open');
+    });
+    document.getElementById('swatchGrid').appendChild(dot);
+  });
+
+  // ── Log buttons ──────────────────────────────────────────────────────────
+  document.getElementById('logIncrementBtn').addEventListener('click', () => logWater(settings.incrementOz));
+
+  const customPanel = document.getElementById('customPanel');
+  document.getElementById('logCustomBtn').addEventListener('click', () => {
+    customPanel.classList.toggle('open');
+    if (customPanel.classList.contains('open'))
+      document.getElementById('customOzInput').focus();
+  });
+  document.getElementById('customCancelBtn').addEventListener('click', () => {
+    customPanel.classList.remove('open');
+    document.getElementById('customOzInput').value = '';
+  });
+  function logCustom() {
+    const oz = parseFloat(document.getElementById('customOzInput').value);
+    if (!oz || oz <= 0) return;
+    logWater(oz);
+    customPanel.classList.remove('open');
+    document.getElementById('customOzInput').value = '';
+  }
+  document.getElementById('customLogBtn').addEventListener('click', logCustom);
+  document.getElementById('customOzInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter')  logCustom();
+    if (e.key === 'Escape') document.getElementById('customCancelBtn').click();
+  });
+
+  // ── Undo ─────────────────────────────────────────────────────────────────
+  document.getElementById('undoBtn').addEventListener('click', undoLast);
+
+  // ── Settings ─────────────────────────────────────────────────────────────
+  document.getElementById('applySettings').addEventListener('click', () => {
+    const sv = document.getElementById('settingStart').value.split(':').map(Number);
+    const ev = document.getElementById('settingEnd').value.split(':').map(Number);
+    const g  = parseInt(document.getElementById('settingGoal').value)      || 96;
+    const inc= parseInt(document.getElementById('settingIncrement').value) || 16;
+    if (sv.length === 2) { settings.startHour = sv[0]; settings.startMin = sv[1]; }
+    if (ev.length === 2) { settings.endHour   = ev[0]; settings.endMin   = ev[1]; }
+    settings.goalOz      = g;
+    settings.incrementOz = inc;
+    localStorage.setItem('h2o-settings', JSON.stringify(settings));
+    logStack = [];
+    popover.classList.remove('open');
+    render();
+  });
+  document.getElementById('soundOff').addEventListener('click', () => {
+    settings.soundOn = false; localStorage.setItem('h2o-settings', JSON.stringify(settings)); render();
+  });
+  document.getElementById('soundOn').addEventListener('click', () => {
+    settings.soundOn = true;  localStorage.setItem('h2o-settings', JSON.stringify(settings)); render();
+  });
+
+  // ── Calendar nav ─────────────────────────────────────────────────────────
+  document.getElementById('calPrev').addEventListener('click', () => {
+    calView = new Date(calView.getFullYear(), calView.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  document.getElementById('calNext').addEventListener('click', () => {
+    const next = new Date(calView.getFullYear(), calView.getMonth() + 1, 1);
+    const now  = new Date();
+    if (next.getFullYear() < now.getFullYear() ||
+       (next.getFullYear() === now.getFullYear() && next.getMonth() <= now.getMonth())) {
+      calView = next;
+      renderCalendar();
+    }
+  });
+
+  // ── Popover ───────────────────────────────────────────────────────────────
+  menuBtn.addEventListener('click', e => { e.stopPropagation(); popover.classList.toggle('open'); });
+  document.addEventListener('click', () => popover.classList.remove('open'));
+  popover.addEventListener('click', e => e.stopPropagation());
+
+  // ── Mode ─────────────────────────────────────────────────────────────────
+  const _mq = window.matchMedia('(prefers-color-scheme: dark)');
+  let _mode = localStorage.getItem('h2o-dark') || 'auto';
+  if (_mode === 'on')  _mode = 'dark';
+  if (_mode === 'off') _mode = 'light';
+  function _applyDark(m) {
+    document.body.classList.toggle('dark', m === 'dark' || (m === 'auto' && _mq.matches));
+  }
+  function setMode(m) {
+    _mode = m; localStorage.setItem('h2o-dark', m); _applyDark(m);
+    document.getElementById('modeLight').classList.toggle('active', m === 'light');
+    document.getElementById('modeDark').classList.toggle('active',  m === 'dark');
+    document.getElementById('modeAuto').classList.toggle('active',  m === 'auto');
+  }
+  _mq.addEventListener('change', () => { if (_mode === 'auto') _applyDark('auto'); });
+  document.getElementById('modeLight').addEventListener('click', () => setMode('light'));
+  document.getElementById('modeDark').addEventListener('click',  () => setMode('dark'));
+  document.getElementById('modeAuto').addEventListener('click',  () => setMode('auto'));
+  setMode(_mode);
+
+  // ── Border ────────────────────────────────────────────────────────────────
+  let borderOn = localStorage.getItem('h2o-border') === 'on';
+  function setBorder(on) {
+    borderOn = on; localStorage.setItem('h2o-border', on ? 'on' : 'off');
+    document.body.classList.toggle('border-on', on);
+    document.getElementById('borderOff').classList.toggle('active', !on);
+    document.getElementById('borderOn').classList.toggle('active',   on);
+  }
+  document.getElementById('borderOff').addEventListener('click', () => setBorder(false));
+  document.getElementById('borderOn').addEventListener('click',  () => setBorder(true));
+  setBorder(borderOn);
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  render();
+  scheduleMidnight();
+
+  // Update bars + behind check every 30 seconds
+  setInterval(() => { renderBars(); checkBehind(); }, 30000);
+</script>
+</body>
+</html>
