@@ -86,8 +86,8 @@
       overflow: visible;
     }
 
-    .bar-track.ideal-track { height: 8px; }
-    .bar-track.actual-track { height: 12px; overflow: hidden; border-radius: 5px; }
+    .bar-track.ideal-track  { height: 8px; }
+    .bar-track.actual-track { height: 8px; overflow: hidden; border-radius: 5px; }
 
     .bar-fill {
       height: 100%;
@@ -96,7 +96,8 @@
       min-width: 0;
     }
 
-    .ideal-fill  { background: var(--accent); border-radius: 5px; }
+    .ideal-fill  { background: #487CA5; border-radius: 5px; }
+    body.dark .ideal-fill { background: #447ACB; }
     .actual-fill { border-radius: 5px; }
     .actual-fill.good { background: var(--c-good); }
     .actual-fill.warn { background: var(--c-warn); }
@@ -239,12 +240,13 @@
       margin-bottom: 3px;
     }
     .cal-dow-cell {
-      font-size: 7px;
+      font-size: 9px;
       font-weight: 400;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--subtext);
       text-align: center;
+      padding: 2px 0;
     }
 
     .cal-grid {
@@ -255,17 +257,21 @@
 
     .cal-day {
       aspect-ratio: 1;
-      border-radius: 3px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 10px;
       font-weight: 300;
       color: var(--text);
+      background: var(--cell-bg);
     }
 
-    .cal-day.today { outline: 1.5px solid var(--accent); outline-offset: -1px; }
-    .cal-day.future { opacity: 0.3; }
+    /* spacer cells before day 1 — no background */
+    .cal-day.spacer { background: transparent; }
+
+    .cal-day.today  { outline: 1.5px solid var(--accent); outline-offset: -1px; }
+    .cal-day.future { opacity: 0.45; }
 
     .cal-day.perf-good { background: #E9F3F7; color: #487CA5; font-weight: 400; }
     .cal-day.perf-warn { background: #FAF3DD; color: #C29343; font-weight: 400; }
@@ -480,6 +486,13 @@
 
     <!-- Log buttons -->
     <div class="log-row">
+      <button class="log-btn" id="subIncrementBtn">
+        <!-- minus -->
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span id="subLabel">16 oz</span>
+      </button>
       <button class="log-btn primary" id="logIncrementBtn">
         <!-- water drop -->
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -501,19 +514,25 @@
       <input type="number" id="customOzInput" placeholder="how many oz?" min="1" max="500" />
       <div class="form-row">
         <button class="form-btn" id="customCancelBtn">cancel</button>
-        <button class="form-btn primary" id="customLogBtn">log</button>
+        <button class="form-btn" id="customSubBtn">− remove</button>
+        <button class="form-btn primary" id="customLogBtn">+ add</button>
       </div>
     </div>
 
     <!-- Calendar -->
-    <div class="cal-section">
+    <div class="cal-section" id="calSection" style="margin-top:6px">
       <div class="cal-header">
         <button class="cal-nav" id="calPrev">«</button>
         <span class="cal-title" id="calTitle"></span>
-        <button class="cal-nav" id="calNext">»</button>
+        <div style="display:flex;gap:2px;align-items:center">
+          <button class="cal-nav" id="calToggle" title="Show/hide calendar">▾</button>
+          <button class="cal-nav" id="calNext">»</button>
+        </div>
       </div>
-      <div class="cal-dow" id="calDow"></div>
-      <div class="cal-grid" id="calGrid"></div>
+      <div id="calBody">
+        <div class="cal-dow" id="calDow"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -798,7 +817,7 @@
     const daysInMo   = new Date(yr, mo + 1, 0).getDate();
 
     for (let i = 0; i < firstDow; i++) {
-      grid.appendChild(Object.assign(document.createElement('div'), {className:'cal-day'}));
+      grid.appendChild(Object.assign(document.createElement('div'), {className:'cal-day spacer'}));
     }
 
     for (let d = 1; d <= daysInMo; d++) {
@@ -813,7 +832,7 @@
 
       if (isToday)  cell.classList.add('today');
       if (isFuture) { cell.classList.add('future'); }
-      else if (history[dateStr] !== undefined) {
+      else if (history[dateStr] !== undefined && parseFloat(history[dateStr]) > 0) {
         const pct = parseFloat(history[dateStr]) / settings.goalOz;
         if      (pct >= 0.9)  cell.classList.add('perf-good');
         else if (pct >= 0.75) cell.classList.add('perf-warn');
@@ -831,6 +850,7 @@
     renderTicks();
     renderCalendar();
     document.getElementById('logLabel').textContent = `+${settings.incrementOz} oz`;
+    document.getElementById('subLabel').textContent = `${settings.incrementOz} oz`;
     // Sync settings inputs
     document.getElementById('settingStart').value =
       `${String(settings.startHour).padStart(2,'0')}:${String(settings.startMin).padStart(2,'0')}`;
@@ -872,6 +892,11 @@
 
   // ── Log buttons ──────────────────────────────────────────────────────────
   document.getElementById('logIncrementBtn').addEventListener('click', () => logWater(settings.incrementOz));
+  document.getElementById('subIncrementBtn').addEventListener('click', () => {
+    const next = Math.max(0, todayOz() - settings.incrementOz);
+    setTodayOz(next);
+    render();
+  });
 
   const customPanel = document.getElementById('customPanel');
   document.getElementById('logCustomBtn').addEventListener('click', () => {
@@ -891,6 +916,15 @@
     document.getElementById('customOzInput').value = '';
   }
   document.getElementById('customLogBtn').addEventListener('click', logCustom);
+  function subtractCustom() {
+    const oz = parseFloat(document.getElementById('customOzInput').value);
+    if (!oz || oz <= 0) return;
+    setTodayOz(Math.max(0, todayOz() - oz));
+    render();
+    customPanel.classList.remove('open');
+    document.getElementById('customOzInput').value = '';
+  }
+  document.getElementById('customSubBtn').addEventListener('click', subtractCustom);
   document.getElementById('customOzInput').addEventListener('keydown', e => {
     if (e.key === 'Enter')  logCustom();
     if (e.key === 'Escape') document.getElementById('customCancelBtn').click();
@@ -920,6 +954,19 @@
   document.getElementById('soundOn').addEventListener('click', () => {
     settings.soundOn = true;  localStorage.setItem('h2o-settings', JSON.stringify(settings)); render();
   });
+
+  // ── Calendar toggle ───────────────────────────────────────────────────────
+  let calVisible = localStorage.getItem('h2o-cal') !== 'hide';
+  function applyCalVisible() {
+    document.getElementById('calBody').style.display = calVisible ? '' : 'none';
+    document.getElementById('calToggle').textContent = calVisible ? '▾' : '▸';
+  }
+  document.getElementById('calToggle').addEventListener('click', () => {
+    calVisible = !calVisible;
+    localStorage.setItem('h2o-cal', calVisible ? 'show' : 'hide');
+    applyCalVisible();
+  });
+  applyCalVisible();
 
   // ── Calendar nav ─────────────────────────────────────────────────────────
   document.getElementById('calPrev').addEventListener('click', () => {
