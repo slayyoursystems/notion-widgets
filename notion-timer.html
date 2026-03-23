@@ -20,7 +20,8 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: transparent;
+      background: #fff;
+      border-radius: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -339,15 +340,14 @@
       content: '';
       position: fixed;
       inset: 0;
-      background: #fff;
       border-radius: 10px;
-      z-index: -1;
+      z-index: 9999;
       pointer-events: none;
+
     }
-    body.dark::before { background: #000; }
     body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
     body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
-    body.dark { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a; }
+    body.dark { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a;  background: #000; }
     body.dark .countdown { color: #f0f0f0; }
     body.dark .countdown.done { color: var(--accent); }
     body.dark .menu-btn { color: #333; }
@@ -700,7 +700,7 @@
   setMode(_mode);
 
   // Border toggle
-  let borderOn = localStorage.getItem('tmr-border') === 'on';
+  let borderOn = localStorage.getItem('tmr-border') !== 'off';
   function setBorder(on) { borderOn = on; localStorage.setItem('tmr-border', on ? 'on' : 'off'); document.body.classList.toggle('border-on', on); document.getElementById('borderOff').classList.toggle('active', !on); document.getElementById('borderOn').classList.toggle('active', on); }
   document.getElementById('borderOff').addEventListener('click', () => setBorder(false));
   document.getElementById('borderOn').addEventListener('click', () => setBorder(true));

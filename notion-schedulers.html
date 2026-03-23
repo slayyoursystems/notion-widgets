@@ -20,7 +20,8 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: transparent;
+      background: #fff;
+      border-radius: 10px;
       display: flex;
       flex-direction: column;
       padding: 24px 14px 0 14px;
@@ -278,17 +279,16 @@
       content: '';
       position: fixed;
       inset: 0;
-      background: #fff;
       border-radius: 10px;
-      z-index: -1;
+      z-index: 9999;
       pointer-events: none;
+
     }
-    body.dark::before { background: #000; }
     body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
     body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
 
     /* ── Dark mode ── */
-    body.dark { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a; }
+    body.dark { --text: #e0e0e0; --subtext: #555; --border: #2a2a2a;  background: #000; }
     body.dark .popover { background: #1e1e1e; border-color: #333; }
     body.dark .add-form input { color: #e0e0e0; }
     body.dark .swatch.active { border-color: #ccc; }
@@ -326,7 +326,7 @@
   </div>
 
   <div class="footer">
-    <button class="footer-btn" id="addBtn">+</button>
+    <button class="footer-btn" id="addBtn" style="font-size:11px;letter-spacing:.05em">+ add</button>
     <div class="popover-wrap">
       <button class="footer-btn" id="menuBtn" style="font-size:11px;letter-spacing:.05em">···</button>
       <div class="popover" id="popover">
@@ -352,6 +352,25 @@
 </div>
 
 <script>
+  // ── Clipboard helper ─────────────────────────────────────────────────────
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(() => execCopy(text));
+    }
+    return execCopy(text);
+  }
+  function execCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  }
+
   // ── SVG icons ────────────────────────────────────────────────────────────
   const ICON_COPY = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -398,7 +417,11 @@
   function render() {
     const list = document.getElementById('list');
     if (!schedulers.length) {
-      list.innerHTML = '<div class="empty">no schedulers yet</div>';
+      list.innerHTML = '<div class="empty" id="emptyMsg" style="cursor:pointer">no schedulers yet<br><span style="font-size:10px;opacity:.7">tap + add to get started</span></div>';
+      document.getElementById('emptyMsg').addEventListener('click', () => {
+        addForm.classList.add('open');
+        document.getElementById('nameInput').focus();
+      });
       return;
     }
     list.innerHTML = '';
@@ -417,7 +440,7 @@
       row.querySelector('.sc-copy').addEventListener('click', e => {
         e.stopPropagation();
         const btn = e.currentTarget;
-        navigator.clipboard.writeText(sc.url).then(() => {
+        copyText(sc.url).then(() => {
           btn.innerHTML = ICON_CHECK;
           btn.classList.add('copied');
           setTimeout(() => {
@@ -514,7 +537,7 @@
   setMode(_mode);
 
   // ── Border ────────────────────────────────────────────────────────────────
-  let borderOn = localStorage.getItem('mx-border') === 'on';
+  let borderOn = localStorage.getItem('mx-border') !== 'off';
   function setBorder(on) {
     borderOn = on;
     localStorage.setItem('mx-border', on ? 'on' : 'off');

@@ -9,7 +9,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { background: transparent; }
     :root { --accent: #337EA9; --accent-text: #fff; --cell-bg: #e5f2fc; --text:#1a1a1a; --subtext:#aaa; --border:#ebebeb; }
-    body { font-family:'Inter',sans-serif; background:transparent; display:flex; flex-direction:column; padding:24px 14px 0 14px; overflow:hidden; }
+    body { font-family:'Inter',sans-serif; background: #fff;
+      border-radius: 10px; display:flex; flex-direction:column; padding:24px 14px 0 14px; overflow:hidden; }
     .header { font-size:12px; font-weight:300; letter-spacing:0.22em; text-transform:uppercase; color:var(--text); text-align:center; margin-bottom:10px; }
     .cities { display:flex; flex-direction:column; gap:4px; }
     .city-row { display:flex; align-items:center; justify-content:space-between; background:var(--cell-bg); border-radius:5px; padding:8px 12px; }
@@ -57,15 +58,14 @@
       content: '';
       position: fixed;
       inset: 0;
-      background: #fff;
       border-radius: 10px;
-      z-index: -1;
+      z-index: 9999;
       pointer-events: none;
+
     }
-    body.dark::before { background: #000; }
     body.border-on::before { border: 1px solid rgba(55, 53, 47, 0.09); }
     body.dark.border-on::before { border-color: rgba(255, 255, 255, 0.082); }
-    body.dark { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a; }
+    body.dark { --text:#e0e0e0; --subtext:#555; --border:#2a2a2a;  background: #000; }
     body.dark .popover { background:#1e1e1e; border-color:#333; }
     body.dark .city-select { color:#e0e0e0; }
     body.dark .swatch.active { border-color:#ccc; }
@@ -255,7 +255,7 @@
   document.getElementById('modeDark').addEventListener('click', () => setMode('dark'));
   document.getElementById('modeAuto').addEventListener('click', () => setMode('auto'));
   setMode(_mode);
-  let borderOn=localStorage.getItem('wc-border')==='on';
+  let borderOn=localStorage.getItem('wc-border') !== 'off';
   function setBorder(on){borderOn=on;localStorage.setItem('wc-border',on?'on':'off');document.body.classList.toggle('border-on',on);document.getElementById('borderOff').classList.toggle('active',!on);document.getElementById('borderOn').classList.toggle('active',on);}
   document.getElementById('borderOff').addEventListener('click',()=>setBorder(false));
   document.getElementById('borderOn').addEventListener('click',()=>setBorder(true));
